@@ -7,16 +7,12 @@ const LandingPage = () => {
     const handledashboardBtn = () => {
         router.push("/dashboard")
     }
-     
-
-
 
     return (
-        
-        <div className="">
+        <div className="h-full w-full flex flex-col items-center justify-center">
             <p className="">LandingPage</p>
             <button type="button" onClick={() => handledashboardBtn()}>
-                dashboard
+                Dashboard
             </button>
         </div>
     );
