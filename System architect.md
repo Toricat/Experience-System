@@ -49,11 +49,7 @@ no data
 
 ### 4.  Kiến trúc hướng không gian (Space-based architecture)
 
--  Flow Diagram: ![Flow Diagram](https://statics.cdn.200lab.io/2024/01/ezgif-2-32daf7fb1f-1.gif)
-
--  Python Tree Diagram: ![Folder Tree]()
-
-- [Link bài viết: Kiến trúc hướng sự kiện](https://200lab.io/blog/kien-truc-huong-su-kien/)
+no data
 
 
 
