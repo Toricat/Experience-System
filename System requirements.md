@@ -21,8 +21,10 @@
                 - Điều kiện trước tiên (Preconditions)
                 - Điều kiện sau cùng (Postconditions)
                 - Logic nghiệp vụ (Business Logic)
-            2. Thiết kế luồng hoạt động:
-            [Link bài viết: Kiến trúc phân lớp](https://200lab.io/blog/cach-phan-loai-cac-loai-kien-truc-phan-mem-phan-1/)
+            2. Thiết kế luồng hoạt động (Flow Design):
+                - Link web thiết kế flow: draw.io / miro.com
+                a. Thiết kế cấp cao (HLD: High-Level Design)
+                b. Thiết kế cấp thấp (LLD: Low-Level Design)
         III. Yêu cầu phi tính năng (Non-Functional Requirements)
             - Số lượng, lưu lượng của user cùng lúc
             - Thời gian phản hồi
@@ -51,7 +53,19 @@
 - Điều kiện trước tiên (Preconditions)
 - Điều kiện sau cùng (Postconditions)
 - Logic nghiệp vụ (Business Logic)
-### 2.
+### 2. Thiết kế luồng hoạt động (Flow Design):
+- a. Thiết kế cấp cao (HLD: High-Level Design)
+    -  Architecture Diagram: Các thành phần chính như máy chủ web, máy chủ ứng dụng, cơ sở dữ liệu, các dịch vụ bên ngoài, và cách chúng tương tác với nhau.
+    - Data Flow Diagram: Các luồng dữ liệu giữa các thành phần chính, điểm đầu vào và đầu ra của dữ liệu.
+    - Component Diagram: Các phần mềm như mô-đun, thư viện, và các dịch vụ, cùng với các giao diện và kết nối giữa chúng.
+    - Deployment Diagram: Minh họa cách phần mềm được triển khai trên phần cứng.
+    - Use Case Diagram: Minh họa các trường hợp sử dụng của hệ thống và mối quan hệ giữa các tác nhân (actors) và các trường hợp sử dụng (use cases).
+- b. Thiết kế cấp thấp (LLD: Low-Level Design)
+    - Class Diagram: Các class, thuộc tính của chúng, các phương thức và mối quan hệ (kế thừa, liên kết, phụ thuộc) giữa các class.
+    - Sequence Diagram: Các đối tượng tham gia, thứ tự các tin nhắn trao đổi giữa chúng, và thời gian diễn ra các hoạt động.
+    - Activity Diagram: Mô tả luồng công việc hoặc hoạt động trong một quy trình nghiệp vụ hoặc một phần của hệ thống
+    - State Diagram: Các trạng thái của đối tượng, các sự kiện kích hoạt chuyển đổi trạng thái và các hành động liên quan.
+    - Entity-Relationship Diagram: Cấu trúc dữ liệu và mối quan hệ giữa các thực thể dữ liệu.
 ### III. Yêu cầu phi tính năng (Non-Functional Requirements)
 - Số lượng, lưu lượng của user cùng lúc
 - Thời gian phản hồi
