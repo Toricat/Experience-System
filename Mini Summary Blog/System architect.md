@@ -1,4 +1,3 @@
-
 # Các kiến trúc thường được sử dụng (System Architecture Pattern)
      Tóm tắt:
         I. Kiến trúc nguyên khối (Monolithic architecture)

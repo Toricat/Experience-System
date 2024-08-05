@@ -25,6 +25,7 @@
                 - Link web thiết kế flow: draw.io / miro.com
                 a. Thiết kế cấp cao (HLD: High-Level Design)
                 b. Thiết kế cấp thấp (LLD: Low-Level Design)
+                c. Sử dụng uml
         III. Yêu cầu phi tính năng (Non-Functional Requirements)
             - Số lượng, lưu lượng của user cùng lúc
             - Thời gian phản hồi
@@ -55,7 +56,7 @@
 - Logic nghiệp vụ (Business Logic)
 ### 2. Thiết kế luồng hoạt động (Flow Design):
 - a. Thiết kế cấp cao (HLD: High-Level Design)
-    -  Architecture Diagram: Các thành phần chính như máy chủ web, máy chủ ứng dụng, cơ sở dữ liệu, các dịch vụ bên ngoài, và cách chúng tương tác với nhau.
+    - Architecture Diagram: Các thành phần chính như máy chủ web, máy chủ ứng dụng, cơ sở dữ liệu, các dịch vụ bên ngoài, và cách chúng tương tác với nhau.
     - Data Flow Diagram: Các luồng dữ liệu giữa các thành phần chính, điểm đầu vào và đầu ra của dữ liệu.
     - Component Diagram: Các phần mềm như mô-đun, thư viện, và các dịch vụ, cùng với các giao diện và kết nối giữa chúng.
     - Deployment Diagram: Minh họa cách phần mềm được triển khai trên phần cứng.
@@ -66,6 +67,8 @@
     - Activity Diagram: Mô tả luồng công việc hoặc hoạt động trong một quy trình nghiệp vụ hoặc một phần của hệ thống
     - State Diagram: Các trạng thái của đối tượng, các sự kiện kích hoạt chuyển đổi trạng thái và các hành động liên quan.
     - Entity-Relationship Diagram: Cấu trúc dữ liệu và mối quan hệ giữa các thực thể dữ liệu.
+- c. Sử dụng uml (Unified Modeling Language - Ngôn ngữ mô hình thống nhất) để thiết kế bảng
+    - [UML](https://200lab.io/blog/uml-la-gi-gioi-thieu-cac-loai-uml-hay-dung/)
 ### III. Yêu cầu phi tính năng (Non-Functional Requirements)
 - Số lượng, lưu lượng của user cùng lúc
 - Thời gian phản hồi
