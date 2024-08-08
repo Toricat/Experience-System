@@ -1,0 +1,14 @@
+// src/services/auth/login/route.ts
+import { http } from '@/lib/http';
+import { LoginResponse } from '@/helpers/types/authTypes';
+
+export const login = async (email: string, password: string): Promise<LoginResponse> => {
+
+  const response = await http.post('/auth/login', {
+    email,
+    password,
+  });
+
+
+  return response;
+};

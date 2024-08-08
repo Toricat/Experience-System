@@ -1,14 +1,25 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss/tailwind.css";
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
 
+
+@layer base {
 html,
-  body,
-  :root {
+  body  {
     width: 100%;
     height: 100%;
     padding: 0;
     margin: 0;
+    text-align: center;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 1.5;
+    letter-spacing: -0.02em;
+    box-sizing: border-box;
+    background-color: #ffffff;
+    color: #000000;
+   
   }
 
   *::-webkit-scrollbar-track {
@@ -27,30 +38,17 @@ html,
     -webkit-box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.356);
     background-color: #727272;
   }
-
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+  body div {
+    width: 100%;
+    height: 100%;
   }
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+
+@layer components {
+  
 }
+
 
 @layer utilities {
   .text-balance {
