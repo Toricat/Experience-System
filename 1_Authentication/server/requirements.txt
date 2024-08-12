@@ -3,8 +3,16 @@ uvicorn==0.30.1
 sqlalchemy==2.0.30
 alembic==1.13.1
 sqlmodel==0.0.21
-# pydantic==2.7.1
-pydantic_settings
+pydantic==2.7.1
+pydantic_settings == 2.4.0
+python-jose ==3.3.0
+passlib ==1.7.4
+
+arq==0.20.0
+
+aiomysql== 0.2.0
+
+# python-multipart==0.0.5
 
 #alembic init app/alembic
 #alembic stamp base

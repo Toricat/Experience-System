@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "arctic": "^1.9.2",
     "axios": "^1.7.3",
     "js-cookie": "^3.0.5",
     "jwt-decode": "^4.0.0",

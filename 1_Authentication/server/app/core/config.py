@@ -6,7 +6,6 @@ from pydantic import (
     AnyUrl,
     BeforeValidator,
     HttpUrl,
-    PostgresDsn,
     computed_field,
     model_validator,
 )
@@ -34,8 +33,7 @@ class Settings(BaseSettings):
     DOMAIN: str = "localhost"
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"
 
-    @computed_field  # type: ignore[prop-decorator]
-    @property
+    @computed_field(return_type=str)  # Thêm return_type
     def server_host(self) -> str:
         # Use HTTPS for anything other than local development
         if self.ENVIRONMENT == "local":
@@ -48,37 +46,22 @@ class Settings(BaseSettings):
 
     PROJECT_NAME: str
     SENTRY_DSN: HttpUrl | None = None
+    DB_HOST: str
+    DB_PORT: int = 5432
+    DB_USER: str
+    DB_PASSWORD: str = ""
+    DB: str = ""
+    DB_SCHEMA: str 
 
-    # POSTGRES_SERVER: str
-    # POSTGRES_PORT: int = 5432
-    # POSTGRES_USER: str
-    # POSTGRES_PASSWORD: str = ""
-    # POSTGRES_DB: str = ""
-
-    MYSQL_SERVER: str
-    MYSQL_PORT: int = 3308
-    MYSQL_USER: str
-    MYSQL_PASSWORD: str = ""
-    MYSQL_DB: str = ""
-
-    # MONGO_SERVER: str
-    # MONGO_PORT: int = 27017
-    # MONGO_USER: str
-    # MONGO_PASSWORD: str = ""
-    # MONGO_DB: str = ""
-
-    @computed_field  # type: ignore[prop-decorator]
-    @property 
-    def SQLALCHEMY_DATABASE_URI(self) -> PostgresDsn:
+    @computed_field(return_type=str)  # Thêm return_type
+    def SQLALCHEMY_DATABASE_URI(self) -> str:
         return MultiHostUrl.build(
-            scheme="postgresql+psycopg",
-            # scheme="mysql+pymysql",
-            # scheme="mongodb",
-            username=self.POSTGRES_USER,
-            password=self.POSTGRES_PASSWORD,
-            host=self.POSTGRES_SERVER,
-            port=self.POSTGRES_PORT,
-            path=self.POSTGRES_DB,
+            scheme=self.DB_SCHEMA,
+            username=self.DB_USER,
+            password=self.DB_PASSWORD,
+            host=self.DB_HOST,
+            port=self.DB_PORT,
+            path=self.DB,
         )
 
     SMTP_TLS: bool = True
@@ -99,8 +82,7 @@ class Settings(BaseSettings):
 
     EMAIL_RESET_TOKEN_EXPIRE_HOURS: int = 48
 
-    @computed_field  # type: ignore[prop-decorator]
-    @property
+    @computed_field(return_type=bool)  # Thêm return_type
     def emails_enabled(self) -> bool:
         return bool(self.SMTP_HOST and self.EMAILS_FROM_EMAIL)
 
@@ -124,9 +106,12 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def _enforce_non_default_secrets(self) -> Self:
         self._check_default_secret("SECRET_KEY", self.SECRET_KEY)
-        self._check_default_secret("POSTGRES_PASSWORD", self.POSTGRES_PASSWORD)
-        self._check_default_secret("FIRST_SUPERUSER_PASSWORD", self.FIRST_SUPERUSER_PASSWORD)
+        self._check_default_secret("DB_PASSWORD", self.DB_PASSWORD)
+        self._check_default_secret(
+            "FIRST_SUPERUSER_PASSWORD", self.FIRST_SUPERUSER_PASSWORD
+        )
 
         return self
+
 
 settings = Settings()  # type: ignore

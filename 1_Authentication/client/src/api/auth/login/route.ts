@@ -8,7 +8,5 @@ export const login = async (email: string, password: string): Promise<LoginRespo
     email,
     password,
   });
-
-
   return response;
 };

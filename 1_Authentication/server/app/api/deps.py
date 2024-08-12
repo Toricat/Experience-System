@@ -1,57 +1,51 @@
-# from collections.abc import Generator
-# from typing import Annotated
+from fastapi import Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer, SecurityScopes
+from jose import JWTError, jwt
+from sqlalchemy.ext.asyncio import AsyncSession
 
-# import jwt
-# from fastapi import Depends, HTTPException, status
-# from fastapi.security import OAuth2PasswordBearer
-# from jwt.exceptions import InvalidTokenError
-# from pydantic import ValidationError
-# from sqlmodel import Session
+from core.config import settings
+from core.db import SessionLocal
+from core.security import ALGORITHM
+from crud.users import crud_user
+from models.users import User
+from schemas.token import TokenPayload
 
-# from app.core import security
-# from app.core.config import settings
-# from app.core.db import engine
-# from app.models import TokenPayload, User
-
-# reusable_oauth2 = OAuth2PasswordBearer(
-#     tokenUrl=f"{settings.API_V1_STR}/login/access-token"
-# )
-
-
-# def get_db() -> Generator[Session, None, None]:
-#     with Session(engine) as session:
-#         yield session
+oauth2 = OAuth2PasswordBearer(
+    tokenUrl="/api/v1/login",
+    scopes={
+        "user": "Basic user with limited access",
+        "manager": "Manager with elevated permissions",
+        "admin": "Admin with full access",
+    },
+)
 
 
-# SessionDep = Annotated[Session, Depends(get_db)]
-# TokenDep = Annotated[str, Depends(reusable_oauth2)]
+async def get_session():
+    async with SessionLocal() as session:
+        yield session
 
 
-# def get_current_user(session: SessionDep, token: TokenDep) -> User:
-#     try:
-#         payload = jwt.decode(
-#             token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
-#         )
-#         token_data = TokenPayload(**payload)
-#     except (InvalidTokenError, ValidationError):
-#         raise HTTPException(
-#             status_code=status.HTTP_403_FORBIDDEN,
-#             detail="Could not validate credentials",
-#         )
-#     user = session.get(User, token_data.sub)
-#     if not user:
-#         raise HTTPException(status_code=404, detail="User not found")
-#     if not user.is_active:
-#         raise HTTPException(status_code=400, detail="Inactive user")
-#     return user
+def get_token_data(security_scopes: SecurityScopes,token: str = Depends(oauth2)) -> TokenPayload:
+    try:
+        secret_key = settings.SECRET_KEY.get_secret_value()
+        payload = jwt.decode(token, secret_key, algorithms=[ALGORITHM])
+        print(payload)
+        token_data = TokenPayload(payload.get("user_id"), payload.get("scopes", []))
+       
+    except JWTError:
+        raise HTTPException(status_code=403, detail="Could not validate credentials")
+    return token_data
 
 
-# CurrentUser = Annotated[User, Depends(get_current_user)]
+async def get_current_user(
+    token: str = Depends(get_token_data),
+    session: AsyncSession = Depends(get_session),
+):  
+    user = await crud_user.get(session, id=token.user_id)
+    print(token)
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    if not user.is_active:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    return user
 
-
-# def get_current_active_superuser(current_user: CurrentUser) -> User:
-#     if not current_user.is_superuser:
-#         raise HTTPException(
-#             status_code=403, detail="The user doesn't have enough privileges"
-#         )
-#     return current_user
