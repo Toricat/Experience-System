@@ -1,14 +1,14 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, Security
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import  SecurityScopes
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.deps import get_current_user, get_session
 from crud.items import crud_item  
-from models.items import Item  
+
 from models.users import User
-from schemas.items import ItemCreate, ItemUpdate, ItemInDB
+from schemas.items import Item, ItemCreate, ItemUpdate, ItemInDB
 
 router = APIRouter(prefix="/items", tags=["Items"])
 
@@ -18,7 +18,7 @@ async def read_items(
     offset: int = 0,
     limit: int = 100,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Security(get_current_user, scopes=["admin"])
+    current_user: User = Depends(get_current_user),
 ):
     """
     Retrieve items. Only accessible by admin.
@@ -34,7 +34,7 @@ async def create_item(
     security_scopes: SecurityScopes,
     item_in: ItemCreate,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Security(get_current_user, scopes=["manager", "admin"])
+    current_user: User = Depends(get_current_user),
 ):
     """
     Create new item. Accessible by manager or admin.
@@ -57,7 +57,7 @@ async def create_item(
 async def read_item(
     security_scopes: SecurityScopes,
     item_id: int,
-    current_user: User = Security(get_current_user, scopes=["user", "manager", "admin"]),
+    current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ):
     """
@@ -81,7 +81,7 @@ async def update_item(
     item_id: int,
     item_in: ItemUpdate,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Security(get_current_user, scopes=["admin"])
+    current_user: User = Depends(get_current_user),
 ):
     """
     Update an item. Only accessible by admin.
@@ -101,7 +101,7 @@ async def update_item(
 async def delete_item(
     security_scopes: SecurityScopes,
     item_id: int,
-    current_user: User = Security(get_current_user, scopes=["admin"]),
+    current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ):
     """

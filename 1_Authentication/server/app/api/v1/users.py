@@ -4,21 +4,20 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import (
-    get_current_superuser,
+from api.deps import (
     get_current_user,
     get_session,
-    on_superuser,
+
 )
-from app.core.security import get_password_hash
-from app.crud.users import crud_user
-from app.models.users import User
-from app.schemas.users import UserCreate, UserInDB, User, UserUpdate
+from core.security import get_password_hash
+from crud.users import crud_user
+from models.users import User
+from schemas.users import UserCreate, UserInDB, User, UserUpdate
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
-@router.get("/", response_model=List[User], dependencies=[Depends(on_superuser)])
+@router.get("/", response_model=List[User])
 async def read_users(
     offset: int = 0, limit: int = 100, session: AsyncSession = Depends(get_session)
 ):
@@ -29,7 +28,7 @@ async def read_users(
     return users
 
 
-@router.post("/", response_model=User, dependencies=[Depends(on_superuser)])
+@router.post("/", response_model=User)
 async def create_user(
     user_in: UserCreate, session: AsyncSession = Depends(get_session)
 ):
@@ -61,16 +60,12 @@ async def read_user(
         return current_user
 
     user = await crud_user.get(session, id=user_id)
-    if not current_user.is_superuser:
-        raise HTTPException(
-            status_code=403, detail="The user doesn't have enough privileges"
-        )
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
 
-@router.put("/{user_id}/", response_model=User, dependencies=[Depends(on_superuser)])
+@router.put("/{user_id}/", response_model=User)
 async def update_user(
     user_id: int, user_in: UserUpdate, session: AsyncSession = Depends(get_session)
 ):
@@ -99,7 +94,7 @@ async def update_user(
 @router.delete("/{user_id}/", status_code=204)
 async def delete_user(
     user_id: int,
-    current_user: User = Depends(get_current_superuser),
+    current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ):
     user = await crud_user.get(session, id=user_id)

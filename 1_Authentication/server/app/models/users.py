@@ -1,15 +1,14 @@
 from sqlalchemy import Boolean, Column, Integer, String
 from sqlalchemy.orm import relationship
 
-from models.base import Base
+from .base import Base
 
 
 class User(Base):
     id = Column(Integer, primary_key=True, index=True)
-    full_name = Column(String, index=True)
-    email = Column(String, unique=True, index=True, nullable=False)
-    hashed_password = Column(String, nullable=False)
+    full_name = Column(String(225), index=True)
+    email = Column(String(225), unique=True, index=True, nullable=False)
+    hashed_password = Column(String(225), nullable=False)
     is_active = Column(Boolean, default=True)
-    role = Column(String, default="user") 
-    image = Column(String, nullable=True)
+    image = Column(String(225), nullable=True)
     items = relationship("Item", back_populates="owner", lazy="selectin")

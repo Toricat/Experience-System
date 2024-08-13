@@ -26,14 +26,17 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env", env_ignore_empty=True, extra="ignore"
     )
-    API_V1_STR: str = "/api/v1"
+    API_VERSION: str = "/api/v1"
     SECRET_KEY: str = secrets.token_urlsafe(32)
-    # 60 minutes * 24 hours * 8 days = 8 days
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
+    ALGORITHM: str = "HS256"
+    # 60 minutes * 24 hours * 8 days = 1 days
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 1
+    # 60 minutes * 24 hours * 8 days = 814days
+    REFRESH_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 14
     DOMAIN: str = "localhost"
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"
 
-    @computed_field(return_type=str)  # Thêm return_type
+    @computed_field(return_type=str) 
     def server_host(self) -> str:
         # Use HTTPS for anything other than local development
         if self.ENVIRONMENT == "local":
@@ -70,6 +73,10 @@ class Settings(BaseSettings):
     SMTP_HOST: str | None = None
     SMTP_USER: str | None = None
     SMTP_PASSWORD: str | None = None
+
+    REDIS_HOST: str
+    REDIS_PORT: int = 6379
+
     # TODO: update type to EmailStr when sqlmodel supports it
     EMAILS_FROM_EMAIL: str | None = None
     EMAILS_FROM_NAME: str | None = None

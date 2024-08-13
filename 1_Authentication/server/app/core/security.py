@@ -10,10 +10,12 @@ from core.config import settings
 from crud.users import crud_user
 from models.users import User
 
+import uuid
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-ALGORITHM = "HS256"
 
+ALGORITHM=settings.ALGORITHM
 
 def create_access_token(user: User) -> str:
     expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -25,6 +27,8 @@ def create_access_token(user: User) -> str:
         algorithm=ALGORITHM,
     )
 
+def create_refresh_token() -> str:
+   return  str(uuid.uuid4()) 
 
 def is_valid_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
