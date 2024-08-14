@@ -19,7 +19,9 @@ router = APIRouter(prefix="/users", tags=["Users"])
 
 @router.get("/", response_model=List[User])
 async def read_users(
-    offset: int = 0, limit: int = 100, session: AsyncSession = Depends(get_session)
+    offset: int = 0, limit: int = 100, 
+    current_user: User = Depends(get_current_user), 
+    session: AsyncSession = Depends(get_session)
 ):
     """
     Retrieve users.
@@ -30,7 +32,9 @@ async def read_users(
 
 @router.post("/", response_model=User)
 async def create_user(
-    user_in: UserCreate, session: AsyncSession = Depends(get_session)
+    user_in: UserCreate,
+    current_user: User = Depends(get_current_user), 
+    session: AsyncSession = Depends(get_session)
 ):
     """
     Create new user.

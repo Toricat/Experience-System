@@ -6,6 +6,7 @@ class ItemBase(BaseModel):
     description: Optional[str] = None
 
 class ItemCreate(ItemBase):
+    owner_id: int
     pass
 
 class ItemUpdate(ItemBase):

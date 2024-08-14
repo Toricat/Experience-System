@@ -22,7 +22,7 @@ async def login(
         raise HTTPException(status_code=400, detail="Inactive user")
     return {"token_type": "bearer", "access_token": create_access_token(user), "refresh_token": create_refresh_token()}
 
-@router.post("/change-password/")
+@router.post("/change-password")
 async def change_password(
     current_password: str,
     new_password: str,
@@ -37,3 +37,7 @@ async def change_password(
     current_user.hashed_password = get_password_hash(new_password)
     await crud_user.update(session, db_obj=current_user, obj_in={"hashed_password": current_user.hashed_password})
     return {"msg": "Password changed successfully"}
+
+@router.get("/me", response_model=User)
+async def read_users_me(current_user: User = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
+    return current_user
