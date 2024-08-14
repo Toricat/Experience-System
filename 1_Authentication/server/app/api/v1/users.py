@@ -14,7 +14,7 @@ from crud.users import crud_user
 from models.users import User
 from schemas.users import UserCreate, UserInDB, User, UserUpdate
 
-router = APIRouter(prefix="/users", tags=["Users"])
+router = APIRouter(prefix="/users")
 
 
 @router.get("/", response_model=List[User])
@@ -48,6 +48,7 @@ async def create_user(
     obj_in = UserInDB(
         **user_in.dict(), hashed_password=get_password_hash(user_in.password)
     )
+ 
     return await crud_user.create(session, obj_in)
 
 
@@ -71,7 +72,10 @@ async def read_user(
 
 @router.put("/{user_id}/", response_model=User)
 async def update_user(
-    user_id: int, user_in: UserUpdate, session: AsyncSession = Depends(get_session)
+    user_id: int, 
+    user_in: UserUpdate, 
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
 ):
     user = await crud_user.get(session, id=user_id)
     if user is None:

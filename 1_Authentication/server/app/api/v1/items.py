@@ -5,11 +5,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.deps import get_current_user, get_session
 from crud.items import crud_item  
+from crud.users import crud_user
 
 from models.users import User
 from schemas.items import Item, ItemCreate, ItemUpdate, ItemInDB
 
-router = APIRouter(prefix="/items", tags=["Items"])
+router = APIRouter(prefix="/items")
 
 @router.get("/", response_model=List[Item])
 async def read_items(
@@ -19,7 +20,7 @@ async def read_items(
     current_user: User = Depends(get_current_user),
 ):
     """
-    Retrieve items. Only accessible by admin.
+    Retrieve items
     """
     
     items = await crud_item.get_multi(session, offset=offset, limit=limit)
@@ -33,7 +34,7 @@ async def create_item(
    
 ):
     """
-    Create new item. Accessible by manager or admin.
+    Create new item
     """
     
     item = await crud_item.get(session, title=item_in.title)
@@ -42,10 +43,23 @@ async def create_item(
             status_code=409,
             detail="The item with this name already exists in the system",
         )
+    user = await crud_user.get(session, id=current_user.id)
+    if not user.is_active:
+        raise HTTPException(
+            status_code=400, 
+            detail="Inactive user"  
+        )
+    if user is None:
+        raise HTTPException(
+            status_code=400, 
+            detail="ID of User not found"  
+        )
+
     obj_in = ItemInDB(
         **item_in.dict()
     )
-    return await crud_item.create(session, obj_in)
+    item = await crud_item.create(session, obj_in)
+    return item
 
 @router.get("/{item_id}/", response_model=Item)
 async def read_item(
@@ -54,7 +68,7 @@ async def read_item(
     session: AsyncSession = Depends(get_session),
 ):
     """
-    Get a specific item by id. Users can only access their own items.
+    Get a specific item by id
     """
     item = await crud_item.get(session, id=item_id)
     if item is None:
@@ -70,7 +84,7 @@ async def update_item(
     current_user: User = Depends(get_current_user),
 ):
     """
-    Update an item. Only accessible by admin.
+    Update an item
     """
     
     item = await crud_item.get(session, id=item_id)
@@ -88,7 +102,7 @@ async def delete_item(
     session: AsyncSession = Depends(get_session),
 ):
     """
-    Delete an item. Only accessible by admin.
+    Delete an item
     """
     
     item = await crud_item.get(session, id=item_id)

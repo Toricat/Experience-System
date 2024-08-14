@@ -11,22 +11,20 @@ export function middleware(request: NextRequest) {
     pathname.includes('/static') ||
     pathname.includes('.') ||
     pathname.endsWith('.ico')  
-    // || pathname ===('/')
+    || pathname ===('/')
   ) {
     return NextResponse.next();
   }
 
-  if (pathname ==="/" ) {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
+
   
-  if (sessionToken && (pathname.startsWith('/login') || pathname.startsWith('/register'))) {
+  if (sessionToken && (pathname.startsWith('/login') || pathname.startsWith('/register') || pathname.startsWith('/recovery'))) {
     const response = NextResponse.redirect(new URL('/dashboard', request.url));
     return response;
   }
 
 
-  if (!sessionToken && (pathname.startsWith('/login') || pathname.startsWith('/register'))) {
+  if (!sessionToken && (pathname.startsWith('/login') || pathname.startsWith('/register') || pathname.startsWith('/recovery'))) {
     return NextResponse.next();
   }
 

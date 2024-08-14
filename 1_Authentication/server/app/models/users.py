@@ -12,3 +12,4 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     image = Column(String(225), nullable=True)
     items = relationship("Item", back_populates="owner", lazy="selectin")
+    tokens = relationship("Token", back_populates="owner", lazy="selectin")

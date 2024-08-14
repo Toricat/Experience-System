@@ -26,7 +26,7 @@ a = os.getcwd()
 sys.path.append(a)
 
 from app.models.base import Base 
-from app.models import users, items, token
+from app.models import users, items, tokens
 from app.core.config import settings  # noqa
 
 

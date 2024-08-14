@@ -1,19 +1,15 @@
-import React, { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import React from 'react';
+import RegisterForm from '@/app/(auth)/register/form-resister';
+
 const RegisterPage = () => {
-    const router = useRouter()
-
-    const handleRegisterBtn = () => {
-
-        router.push("/login")
-    }
-    return ( 
-        <div className="">
-            Register
-            <button type="button" onClick={() => handleRegisterBtn()}>Register</button>
+    return (
+        <div className="h-full w-full flex items-center justify-center bg-gray-100">
+            <div className="h-full w-full flex flex-col items-center justify-center">
+                <h1 className="text-3xl font-bold text-center text-gray-800 mb-4">Register</h1>
+                <RegisterForm />
+            </div>
         </div>
-     );
-}
- 
-export default RegisterPage;
+    );
+};
 
+export default RegisterPage;

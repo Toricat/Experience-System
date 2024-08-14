@@ -1,5 +1,5 @@
 from typing import Optional
-
+from .items import ItemBase
 from pydantic import BaseModel, EmailStr
 
 class UserBase(BaseModel):
@@ -7,7 +7,6 @@ class UserBase(BaseModel):
     full_name: Optional[str] = None
     is_active: Optional[bool] = None
     image: Optional[str] = None
-    items: Optional[list] = None
 
 class UserCreate(UserBase):
     email: EmailStr
@@ -27,3 +26,6 @@ class User(UserBase):
 
     class Config:
         from_attributes=True
+
+class UserMe(UserBase):
+    items: list[ItemBase]

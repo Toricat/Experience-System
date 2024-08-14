@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
 from crud.users import crud_user
+from crud.tokens import crud_token
 from models.users import User
 
 import uuid
@@ -28,7 +29,11 @@ def create_access_token(user: User) -> str:
     )
 
 def create_refresh_token() -> str:
-   return  str(uuid.uuid4()) 
+    expire = datetime.utcnow() + timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES)
+    refresh_token =str(uuid.uuid4()) 
+
+    return refresh_token, expire 
+
 
 def is_valid_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)

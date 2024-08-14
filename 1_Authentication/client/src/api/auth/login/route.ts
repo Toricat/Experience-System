@@ -10,3 +10,7 @@ export const login = async (email: string, password: string): Promise<LoginRespo
   });
   return response;
 };
+
+export const refresh_token = async (): Promise<void> => {
+  await http.get('/auth/refresh-token');
+};
