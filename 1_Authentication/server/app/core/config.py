@@ -33,6 +33,8 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 1
     # 60 minutes * 24 hours * 8 days = 814days
     REFRESH_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 14
+    # 5 minutes
+    VERIFY_CODE_EXPIRE_MINUTES: int = 5
     DOMAIN: str = "localhost"
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"
 

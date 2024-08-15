@@ -5,4 +5,5 @@ class ChangePassword(BaseModel):
     new_password: str
 class  TokenRefresh(BaseModel):
     refresh_token: str
-
+class RecoveryPassword(BaseModel):
+    email: str

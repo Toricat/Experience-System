@@ -20,7 +20,7 @@ export const RecoverySchema = z.object({
   email: z.string().email("Invalid email address")
 });
 
-export const CodeSchema = z.object({
+export const VerifySchema = z.object({
   code: z.string().min(6, "Code must be at least 6 characters long"),
 });
 

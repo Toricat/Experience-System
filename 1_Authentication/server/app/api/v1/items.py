@@ -3,21 +3,18 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.deps import get_current_user, get_session
+from api.deps import CurrentUser, SessionDep
 from crud.items import crud_item  
 from crud.users import crud_user
 
-from models.users import User
 from schemas.items import Item, ItemCreate, ItemUpdate, ItemInDB
 
 router = APIRouter(prefix="/items")
 
 @router.get("/", response_model=List[Item])
-async def read_items(
+async def read_items( session:  SessionDep, current_user :CurrentUser,
     offset: int = 0,
     limit: int = 100,
-    session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(get_current_user),
 ):
     """
     Retrieve items
@@ -29,8 +26,7 @@ async def read_items(
 @router.post("/", response_model=Item)
 async def create_item(
     item_in: ItemCreate,
-    session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(get_current_user)
+   session:  SessionDep, current_user :CurrentUser,
    
 ):
     """
@@ -64,8 +60,7 @@ async def create_item(
 @router.get("/{item_id}/", response_model=Item)
 async def read_item(
     item_id: int,
-    current_user: User = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
+   session:  SessionDep, current_user :CurrentUser,
 ):
     """
     Get a specific item by id
@@ -80,8 +75,7 @@ async def read_item(
 async def update_item(
     item_id: int,
     item_in: ItemUpdate,
-    session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(get_current_user),
+    session:  SessionDep, current_user :CurrentUser,
 ):
     """
     Update an item
@@ -98,8 +92,7 @@ async def update_item(
 @router.delete("/{item_id}/", status_code=204)
 async def delete_item(
     item_id: int,
-    current_user: User = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
+   session:  SessionDep, current_user :CurrentUser,
 ):
     """
     Delete an item

@@ -11,14 +11,14 @@ class TokenBase(BaseModel):
     refresh_token: Optional[str]
 class AccessTokenPayload(BaseModel):
     user_id: Optional[str]
-    exp: Optional[int]
+    exp: Optional[datetime] 
 class CreateToken(TokenBase):
     pass
 class TokenInDB(TokenBase):
     user_id: Optional[int]
     exp: Optional[datetime] 
 
-class TokenUpdate(TokenBase):
+class TokenUpdateDB(TokenBase):
     pass
 class Token(TokenBase):
     id: int

@@ -20,7 +20,7 @@ const RecoveryForm: React.FC = () => {
             setErrors(errorMessages);
         } else {
             setErrors({});
-            router.push('/recovery/code');
+            router.push('/recovery/verify');
         }
 
 
