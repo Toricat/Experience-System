@@ -1,9 +1,11 @@
 "use client";
 import React, { useState } from 'react';
 import { registerSchema } from '@/helpers/schemas/authschemas';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link'
 
 const RegisterForm: React.FC = () => {
+    const router = useRouter();
     const [name, setName] = useState<string>('');
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
@@ -22,6 +24,8 @@ const RegisterForm: React.FC = () => {
             setErrors(errorMessages);
         } else {
             setErrors({});
+            router.push('/verify');
+
     
         }
     };
@@ -93,7 +97,7 @@ const RegisterForm: React.FC = () => {
                     type="button"
                     onClick={handleGoogleregister}
                     className="w-full bg-red-500 text-white py-2 rounded-md hover:bg-red-600 transition duration-200">
-                    Đăng nhập bằng Google
+                    Signup with Google
                 </button>
             </div>
             <div className="text-center ">

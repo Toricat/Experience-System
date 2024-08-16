@@ -10,22 +10,23 @@ const VerifyForm: React.FC = () => {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-
-        const result =  VerifySchema .safeParse({ verify });
+        const result =  VerifySchema.safeParse({ verify });
 
         if (!result.success) {
+            
             const errorMessages = result.error.errors.reduce(
+                
                 (acc, { path, message }) => ({ ...acc, [path[0]]: message }),{}
             );
+
             setErrors(errorMessages);
         } else {
             setErrors({});
-            router.push('/recovery/verify/reset');
+            router.push('/verify/reset');
         }
 
 
     };
-
 
     return (
         <form onSubmit={handleSubmit} noValidate className="text-left bg-white p-6 rounded-lg shadow-md  mx-auto">

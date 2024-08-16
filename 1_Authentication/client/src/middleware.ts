@@ -18,13 +18,13 @@ export function middleware(request: NextRequest) {
 
 
   
-  if (sessionToken && (pathname.startsWith('/login') || pathname.startsWith('/register') || pathname.startsWith('/recovery'))) {
+  if (sessionToken && (pathname.startsWith('/login') || pathname.startsWith('/register') || pathname.startsWith('/recovery') || pathname.startsWith('/verify'))) {
     const response = NextResponse.redirect(new URL('/dashboard', request.url));
     return response;
   }
 
 
-  if (!sessionToken && (pathname.startsWith('/login') || pathname.startsWith('/register') || pathname.startsWith('/recovery'))) {
+  if (!sessionToken && (pathname.startsWith('/login') || pathname.startsWith('/register') || pathname.startsWith('/recovery') || pathname.startsWith('/verify'))) {
     return NextResponse.next();
   }
 

@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     # 5 minutes
     VERIFY_CODE_EXPIRE_MINUTES: int = 5
     DOMAIN: str = "localhost"
+    DOMAIN_HOST: int = 8000
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"
 
     @computed_field(return_type=str) 

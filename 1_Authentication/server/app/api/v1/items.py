@@ -75,7 +75,8 @@ async def read_item(
 async def update_item(
     item_id: int,
     item_in: ItemUpdate,
-    session:  SessionDep, current_user :CurrentUser,
+    session:  SessionDep, 
+    current_user :CurrentUser,
 ):
     """
     Update an item

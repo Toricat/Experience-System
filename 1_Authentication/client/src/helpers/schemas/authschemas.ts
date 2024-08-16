@@ -21,7 +21,7 @@ export const RecoverySchema = z.object({
 });
 
 export const VerifySchema = z.object({
-  code: z.string().min(6, "Code must be at least 6 characters long"),
+  verify: z.string().min(6, "Code must be at least 6 characters long"),
 });
 
 export const  ResetSchema = z.object({

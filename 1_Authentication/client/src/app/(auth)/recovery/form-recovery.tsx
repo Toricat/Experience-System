@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { RecoverySchema } from '@/helpers/schemas/authschemas';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link'
 const RecoveryForm: React.FC = () => {
     const [email, setEmail] = useState<string>('');
     const [errors, setErrors] = useState<{ email?: string;}>({});
@@ -20,7 +19,7 @@ const RecoveryForm: React.FC = () => {
             setErrors(errorMessages);
         } else {
             setErrors({});
-            router.push('/recovery/verify');
+            router.push('/verify');
         }
 
 

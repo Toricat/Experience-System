@@ -1,0 +1,37 @@
+version: 1
+disable_existing_loggers: False
+
+formatters:
+  default:
+    format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: DEBUG
+
+    formatter: default
+    stream: ext://sys.stdout
+
+  file:
+    class: logging.handlers.RotatingFileHandler
+    level: DEBUG
+    formatter: default
+    filename: PLACEHOLDER_LOG_FILE  #
+    maxBytes: 10000000
+    backupCount: 4
+
+loggers:
+  watchfiles:
+    level: WARNING
+    handlers: [console, file]
+    propagate: False
+
+  httpcore:
+    level: WARNING
+    handlers: [console, file]
+    propagate: False
+
+root:
+  level: INFO
+  handlers: [console, file]

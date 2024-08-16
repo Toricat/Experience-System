@@ -2,7 +2,9 @@
 import React, { useState } from 'react';
 import { loginSchema } from '@/helpers/schemas/authschemas';
 import Link from 'next/link'
+import { useRouter } from 'next/navigation';
 const LoginForm: React.FC = () => {
+    const router = useRouter();
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
@@ -19,6 +21,10 @@ const LoginForm: React.FC = () => {
             setErrors(errorMessages);
         } else {
             setErrors({});
+
+            console.log('Form submitted:', { email, password });
+            
+            router.push('/dashboard');
         }
 
     };
@@ -66,7 +72,7 @@ const LoginForm: React.FC = () => {
                     type="button"
                     onClick={handleGoogleLogin}
                     className="w-full bg-red-500 text-white py-2 rounded-md hover:bg-red-600 transition duration-200">
-                    Đăng nhập bằng Google
+                    Signup with Google
                 </button>
             </div>
             <div className="text-center">

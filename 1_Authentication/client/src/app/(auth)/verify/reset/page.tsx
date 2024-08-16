@@ -1,5 +1,5 @@
 import React from 'react';
-import ResetForm from '@/app/(auth)/recovery/code/reset/form-reset';
+import ResetForm from '@/app/(auth)/verify/reset/form-reset';
 
 const ResetPage = () => {
     return (

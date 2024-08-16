@@ -25,7 +25,25 @@ async def read_users(
     users = await crud_user.get_multi(session, offset=offset, limit=limit)
     return users
 
-
+@router.get("/{user_id}/", response_model=User)
+async def read_user(
+    user_id: int,
+    current_user: CurrentUser,
+    session: SessionDep,
+):
+    """
+    Get a specific user by id.
+    """
+    if current_user.id == user_id:
+        return current_user
+    
+    else:
+        try:
+            user = await crud_user.get(session, id=user_id)
+        except NoResultFound:
+            raise HTTPException(status_code=404, detail="User not found")
+        return user
+    
 @router.post("/", response_model=User)
 async def create_user(
     user_in: UserCreate,
@@ -49,20 +67,8 @@ async def create_user(
         )
 
 
-@router.get("/{user_id}/", response_model=User)
-async def read_user(
-    user_id: int,
-    current_user: CurrentUser,
-    session: SessionDep,
-):
-    """
-    Get a specific user by id.
-    """
-    if current_user.id == user_id:
-        return current_user
 
-
-@router.put("/{user_id}/", response_model=User)
+@router.put("/{user_id}", response_model=User)
 async def update_user(
     user_id: int,
     user_in: UserUpdate,
@@ -92,7 +98,7 @@ async def update_user(
 
 
 
-@router.delete("/{user_id}/", status_code=204)
+@router.delete("/{user_id}", status_code=204)
 async def delete_user(
     user_id: int,
     current_user: CurrentUser,

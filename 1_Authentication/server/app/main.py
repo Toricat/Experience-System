@@ -1,12 +1,16 @@
 from arq import create_pool
 from arq.connections import RedisSettings
+from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi import FastAPI
-from fastapi.routing import APIRoute
+
 from starlette.middleware.cors import CORSMiddleware
+import logging
 
 from api.router import api_router
 from core import redis
 from core.config import settings
+
+from logger import logger  
 
 
 # async def create_redis_pool():
@@ -20,6 +24,7 @@ from core.config import settings
 
 def create_application() -> FastAPI:
     application = FastAPI(title=settings.PROJECT_NAME)
+    logger.info("Starting application...") 
     # application.add_event_handler("startup", create_redis_pool)
     # application.add_event_handler("shutdown", close_redis_pool)
     if settings.BACKEND_CORS_ORIGINS:
@@ -33,13 +38,17 @@ def create_application() -> FastAPI:
             allow_headers=["*"],
         )
     application.include_router(api_router , prefix= settings.API_VERSION)
-    return application
+    logger.info("Application setup complete.")
 
+    return application
 
 app = create_application()
 
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="localhost", port=8000, reload=True)
+    logger.info("Starting server...")
+    logger.info(f"Server run at: http://{settings.DOMAIN}:{settings.DOMAIN_HOST}...")
+    uvicorn.run("main:app", host=settings.DOMAIN, port=settings.DOMAIN_HOST, reload=True)
+
 
