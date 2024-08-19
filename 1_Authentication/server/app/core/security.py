@@ -45,13 +45,4 @@ def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 
-async def authenticate(
-    session: AsyncSession, email: EmailStr, password: str
-) -> Optional[User]:
-    user = await crud_user.get(session, email=email)
-
-    if user is None:
-        return None
-    else:
-        return user
 

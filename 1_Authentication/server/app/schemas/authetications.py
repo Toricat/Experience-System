@@ -10,5 +10,4 @@ class RecoveryPassword(BaseModel):
     email: str
 
 class ComfirmVerifyCode(BaseModel):
-    user_id: int
     verify_code: str 
