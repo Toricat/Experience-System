@@ -110,9 +110,9 @@ class AuthService:
         if verify is None or verify.exp < datetime.utcnow():
             return UnauthorizedError("Invalid or expired verify code")
 
-        user = await crud_user.get(session, user_id =verify.user_id)
-        if user is None:
-            return NotFoundError("User not found")
+        # user = await crud_user.get(session, user_id =verify.user_id)
+        # if user is None:
+        #     return NotFoundError("User not found")
         
-        await crud_user.update(session, db_obj=user, obj_in={"is_active": True})
+        await crud_user.update(session, user_id =verify.user_id, obj_in={"is_active": True})
         return {"msg": "User Activated"}
