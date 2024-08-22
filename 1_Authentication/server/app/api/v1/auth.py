@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 
-from api.deps import CurrentUser, SessionDep
+from api.deps import SessionDep, RoleChecker
 from fastapi.security import OAuth2PasswordRequestForm
 
 from schemas.tokens import TokenLogin
-from schemas.users import UserCreate, UserMe
+from schemas.users import UserCreate, UserMe, User
 from schemas.verifies import VerifyCode
 from schemas.authetications import ChangePassword, TokenRefresh, RecoveryPassword, ComfirmVerifyCode
 
@@ -29,14 +29,22 @@ async def register(session: SessionDep, data: UserCreate):
     return result
 
 @router.post("/refresh-token", response_model=TokenLogin)
-async def refresh_token(token_data: TokenRefresh, session: SessionDep):
+async def refresh_token(
+    token_data: TokenRefresh, 
+    session: SessionDep, 
+    current_user: User = Depends(RoleChecker(["admin", "manager", "user"])) 
+):
     result = await auth_service.refresh_token_service(session, token_data)
     if isinstance(result, Exception):
         raise HTTPException(status_code=result.code, detail={"message": result.message, "code": result.code})
     return result
 
 @router.post("/reset-password")
-async def change_password(data: ChangePassword, current_user: CurrentUser, session: SessionDep):
+async def change_password(
+    data: ChangePassword, 
+    session: SessionDep, 
+    current_user: User = Depends(RoleChecker(["admin", "manager", "user"]))
+):
     result = await auth_service.change_password_service(session, data, current_user)
     if isinstance(result, Exception):
         raise HTTPException(status_code=result.code, detail={"message": result.message, "code": result.code})
@@ -57,5 +65,8 @@ async def confirm_verify_code(data: ComfirmVerifyCode, session: SessionDep):
     return result
 
 @router.get("/me", response_model=UserMe)
-async def read_users_me(current_user: CurrentUser, session: SessionDep):
+async def read_users_me(
+    session: SessionDep, 
+    current_user:User = Depends(RoleChecker(["admin", "manager", "user"]))
+):
     return current_user

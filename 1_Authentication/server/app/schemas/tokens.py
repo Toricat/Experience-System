@@ -7,16 +7,19 @@ class TokenLogin(BaseModel):
     token_type: Literal["bearer"]
     refresh_token: Optional[str]
     access_token: Optional[str]
-class TokenBase(BaseModel): 
-    refresh_token: Optional[str]
+
 class AccessTokenPayload(BaseModel):
     user_id: Optional[str]
+    exp: Optional[datetime] 
+
+class TokenBase(BaseModel): 
+    refresh_token: Optional[str]
     exp: Optional[datetime] 
 class CreateToken(TokenBase):
     pass
 class TokenInDB(TokenBase):
     user_id: Optional[int]
-    exp: Optional[datetime] 
+
 
 class TokenUpdateDB(TokenBase):
     pass

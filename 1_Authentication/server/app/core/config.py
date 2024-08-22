@@ -59,7 +59,7 @@ class Settings(BaseSettings):
     DB: str = ""
     DB_SCHEMA: str 
 
-    @computed_field(return_type=str)  # Thêm return_type
+    @computed_field(return_type=str)  
     def SQLALCHEMY_DATABASE_URI(self) -> str:
         return MultiHostUrl.build(
             scheme=self.DB_SCHEMA,

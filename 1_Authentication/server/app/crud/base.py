@@ -1,7 +1,7 @@
 from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import select, update as sqlalchemy_update, delete as sqlalchemy_delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 ModelType = TypeVar("ModelType")
@@ -24,7 +24,9 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     async def get(self, session: AsyncSession, *args, **kwargs) -> Optional[ModelType]:
         result = await session.execute(
-            select(self._model).filter(*args).filter_by(**kwargs)
+            select(self._model)
+            .filter(*args)
+            .filter_by(**kwargs)
         )
         return result.scalars().first()
 
@@ -43,29 +45,29 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     async def update(
         self,
         session: AsyncSession,
-        *,
+        *args: Any,
         obj_in: Union[UpdateSchemaType, Dict[str, Any]],
-        db_obj: Optional[ModelType] = None,
-        **kwargs
+        **kwargs: Any
     ) -> Optional[ModelType]:
-        db_obj = db_obj or await self.get(session, **kwargs)
-        if db_obj is not None:
-            obj_data = db_obj.dict()
-            if isinstance(obj_in, dict):
-                update_data = obj_in
-            else:
-                update_data = obj_in.dict(exclude_unset=True)
-            for field in obj_data:
-                if field in update_data:
-                    setattr(db_obj, field, update_data[field])
-            session.add(db_obj)
-            await session.commit()
-        return db_obj
+        update_data = obj_in if isinstance(obj_in, dict) else obj_in.dict(exclude_unset=True)
+        
+        result = await session.execute( 
+            sqlalchemy_update(self._model)
+            .where(*args, **kwargs)
+            .values(**update_data)
+            .returning(self._model))
+        await session.commit()
+
+        return result.scalars().first()
 
     async def delete(
-        self, session: AsyncSession, *args, db_obj: Optional[ModelType] = None, **kwargs
-    ) -> ModelType:
-        db_obj = db_obj or await self.get(session, *args, **kwargs)
-        await session.delete(db_obj)
+        self, session: AsyncSession, *args: Any, **kwargs: Any
+    ) -> Optional[ModelType]:
+  
+        result = await session.execute( 
+            sqlalchemy_delete(self._model)
+            .where(*args, **kwargs)
+            .returning(self._model))
+        
         await session.commit()
-        return db_obj
+        return result.scalars().first()

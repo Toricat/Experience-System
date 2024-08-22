@@ -10,11 +10,10 @@ from core.config import settings
 from core.db import SessionLocal
 from core.security import ALGORITHM
 
-from models.user import User
+from schemas.users import User
 
 from crud.users import crud_user
-from crud.tokens import crud_token
-from crud.verifies import crud_verify
+
 
 from schemas.tokens import AccessTokenPayload
 
@@ -52,14 +51,33 @@ async def get_current_user(
     user = await crud_user.get(session, id=token.user_id)
     if user is None:
         raise HTTPException(status_code=404, detail="User not found", headers={"WWW-Authenticate": "Bearer"})
-    if not user.is_active:
-        raise HTTPException(status_code=400, detail="Inactive user",headers={"WWW-Authenticate": "Bearer"},)
     return user
 
 CurrentUser = Annotated[User, Depends(get_current_user)]
 
 async def get_current_active_user(current_user: CurrentUser):
     if current_user.is_active is False:
-        raise HTTPException(status_code=400, detail="Inactive user")
+        raise HTTPException(status_code=400, detail="Inactive user",headers={"WWW-Authenticate": "Bearer"},)
     return current_user
 
+CurrentActiveUser = Annotated[User, Depends(get_current_active_user)]
+
+def RoleChecker(allowed_roles: list[str]):
+    async def role_checker(
+        current_user:  User = Depends(get_current_active_user)
+    ) -> User:
+        if current_user.role not in allowed_roles:
+            raise HTTPException(
+                status_code=403,
+                detail="Not enough permissions",
+            )
+        return current_user
+    
+    return role_checker
+
+def ownership_check(owner_id, current_user: CurrentActiveUser):
+    if current_user.role not in ["admin"] and owner_id != current_user.id:
+        raise HTTPException(
+            status_code=403, 
+            detail="You do not have permission to access this resource"
+        )
