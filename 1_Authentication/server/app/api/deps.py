@@ -64,13 +64,22 @@ CurrentActiveUser = Annotated[User, Depends(get_current_active_user)]
 
 def RoleChecker(allowed_roles: list[str]):
     async def role_checker(
-        current_user:  User = Depends(get_current_active_user)
+        user_id: int = None,
+        current_user: User = Depends(get_current_user)
     ) -> User:
         if current_user.role not in allowed_roles:
             raise HTTPException(
                 status_code=403,
                 detail="Not enough permissions",
             )
+        
+  
+        if current_user.role == "user" and user_id is not None and current_user.id != user_id:
+            raise HTTPException(
+                status_code=403,
+                detail="You do not have permission to access this resource"
+            )
+
         return current_user
     
     return role_checker

@@ -1,6 +1,6 @@
 class ServiceError(Exception):
     """Base class for service errors."""
-    def __init__(self, message: str, code: int):
+    def __init__(self, message: str, code: int = 500):
         self.message = message
         self.code = code
         super().__init__(self.message)
@@ -36,5 +36,15 @@ class GoneError(ServiceError):
 
 class TooManyRequestsError(ServiceError):
     def __init__(self, message="Too Many Requests", code=429):
+        super().__init__(message, code)
+class AttributeError(ServiceError):
+    def __init__(self, message="Attribute Error", code=500):
+        super().__init__(message, code)
+class DatabaseTimeoutError(ServiceError):
+    def __init__(self, message="Database Timeout", code=504):
+        super().__init__(message, code)
+
+class DatabaseConnectionError(ServiceError):
+    def __init__(self, message="Database Connection Error", code=505):
         super().__init__(message, code)
 

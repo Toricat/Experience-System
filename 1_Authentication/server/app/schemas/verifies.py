@@ -1,20 +1,20 @@
 
 
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
 from .users import User
 
 class VerifyCode(BaseModel):
-    verify_code: str 
+    verify_code: str = Field(..., min_length=1)
 class VerifyBase(BaseModel): 
-    verify_code: Optional[str]
-    exp: Optional[datetime] 
+    verify_code: Optional[str] = Field(None, min_length=1)
+    exp: Optional[datetime] = None
 class CreateVerify(VerifyBase):
     pass
 class VerifyInDB(VerifyBase):
-    user_id: Optional[int]
-    exp: Optional[datetime] 
+    user_id: Optional[int] = Field(None, gt=0)
+    exp: Optional[datetime] = None
 
 class VerifyUpdateDB(VerifyBase):
     pass

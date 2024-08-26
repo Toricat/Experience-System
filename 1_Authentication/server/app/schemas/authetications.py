@@ -6,8 +6,8 @@ class ChangePassword(BaseModel):
 class  TokenRefresh(BaseModel):
     refresh_token: str
     user_id: int
-class RecoveryPassword(BaseModel):
+class VerifyCodeSend(BaseModel):
     email: str
 
-class ComfirmVerifyCode(BaseModel):
+class VerifyCodeComfirm(BaseModel):
     verify_code: str 

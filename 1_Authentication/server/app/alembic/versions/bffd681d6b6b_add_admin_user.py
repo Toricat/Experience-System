@@ -42,7 +42,17 @@ def upgrade() -> None:
                 'role': 'admin',
                 'account_type': 'local',
                 'is_active': True,
-            }   
+            },
+            {
+                'id': 2,
+                'full_name': 'user1',
+                'email': 'user1@gmail.com',
+                'hashed_password': '$2b$12$kKZwpQuIPwriIW26oC8PwupBF7RH2gwpthF01y6s/jDbOJEWvi73W',
+                'image': None,
+                'role': 'user',
+                'account_type': 'local',
+                'is_active': False,
+            }      
         ]
     )
     # ### end Alembic commands ###

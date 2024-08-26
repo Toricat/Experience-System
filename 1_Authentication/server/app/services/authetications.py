@@ -3,23 +3,25 @@ from .common.exceptions import (
     UnauthorizedError, 
     ConflictError, 
     ForbiddenError,
-    TooManyRequestsError,
+    TooManyRequestsError,)
+from .common.utils import handle_error
 
-)
-from .common.utils import handle_db_errors
 from datetime import datetime
+
 from core.security import create_access_token, create_refresh_token, create_verify_code, get_password_hash, is_valid_password
+
 from crud.users import crud_user
 from crud.tokens import crud_token
 from crud.verifies import crud_verify
+
 from schemas.tokens import TokenInDB
-from schemas.users import UserInDB, UserCreate
-from schemas.verifies import VerifyInDB, VerifyUpdateDB
-from schemas.authetications import  TokenRefresh,ChangePassword, RecoveryPassword, ComfirmVerifyCode
+from schemas.users import UserInDB, UserCreate,UserUpdateDB
+from schemas.verifies import VerifyInDB, VerifyUpdateDB, VerifyInDB
+from schemas.authetications import  TokenRefresh,ChangePassword, VerifyCodeComfirm,VerifyCodeSend
 
 class AuthService:
 
-    @handle_db_errors
+    @handle_error
     async def login_service(self, session, data):
         user = await crud_user.get(session, email=data.username)
         if not user or not is_valid_password(data.password, user.hashed_password):
@@ -39,7 +41,7 @@ class AuthService:
 
         return {"token_type": "bearer", "access_token": access_token, "refresh_token": refresh_token}
 
-    @handle_db_errors
+    @handle_error
     async def register_service(self, session, data: UserCreate):
         hashed_password = get_password_hash(data.password)
         new_user = UserInDB(
@@ -52,17 +54,15 @@ class AuthService:
             is_active=False
         )
 
-        # Thực hiện tạo người dùng, lỗi sẽ được handle_db_errors xử lý nếu có
         user = await crud_user.create(session, obj_in=new_user)
 
-        # Tạo verify code cho người dùng mới
         verify_code, expire = create_verify_code()
         obj_in = VerifyInDB(verify_code=verify_code, exp=expire, user_id=user.id)
         await crud_verify.create(session, obj_in=obj_in)
 
         return {"verify_code": verify_code}
 
-    @handle_db_errors
+    @handle_error
     async def refresh_token_service(self, session, token_data: TokenRefresh):
         result = await crud_token.get(session, refresh_token=token_data.refresh_token)
         if not result or result.exp < datetime.utcnow() or result.user_id != token_data.user_id:
@@ -77,33 +77,47 @@ class AuthService:
 
         return {"token_type": "bearer", "access_token": access_token, "refresh_token": refresh_token}
 
-    @handle_db_errors
+    @handle_error
     async def change_password_service(self, session, data: ChangePassword, current_user: UserInDB):
         if not is_valid_password(data.current_password, current_user.hashed_password):
             return UnauthorizedError("Incorrect current password")
-
-        current_user.hashed_password = get_password_hash(data.new_password)
-        await crud_user.update(session, db_obj=current_user, obj_in={"hashed_password": current_user.hashed_password})
+        await crud_user.update(session, id=current_user.id, obj_in={"hashed_password": get_password_hash(data.new_password)})
 
         return {"msg": "Password changed successfully"}
 
-    @handle_db_errors
-    async def recovery_by_email_service(self, session, data: RecoveryPassword):
+    @handle_error
+    async def verify_code_by_email_service(self, session, data: VerifyCodeSend):
         user = await crud_user.get(session, email=data.email)
-        if not user or not user.is_active:
-            return UnauthorizedError("Invalid email or user is inactive")
+        if user is None:
+            return NotFoundError("User not found")
+        verify = await crud_verify.get(session, user_id=user.id)
+        if verify is not None and verify.exp > datetime.utcnow():
+            return {"verify_code": verify.verify_code}
+        
 
         verify_code, expire = create_verify_code()
         obj_in = VerifyUpdateDB(verify_code=verify_code, exp=expire)
-        await crud_verify.update(session, obj_in=obj_in.dict(exclude=None))
+
+        if verify is not None and verify.exp < datetime.utcnow():
+            await crud_verify.update(session, obj_in=obj_in.dict(exclude=None))
+        else:
+            obj_in = VerifyInDB(verify_code=verify_code, exp=expire, user_id=user.id)
+            await crud_verify.create(session, obj_in=obj_in)
 
         return {"verify_code": verify_code}
+        
 
-    @handle_db_errors
-    async def confirm_verify_code_service(self, session, data: ComfirmVerifyCode):
-        verify = await crud_verify.get(session, data.verify_code)
-        if not verify or verify.exp < datetime.utcnow():
-            return UnauthorizedError("Invalid or expired verify code")
 
-        await crud_user.update(session, user_id=verify.user_id, obj_in={"is_active": True})
-        return {"msg": "User Activated"}
+    @handle_error
+    async def confirm_verify_code_service(self, session, data: VerifyCodeComfirm):
+        verify = await crud_verify.get(session, verify_code = data.verify_code)
+        if verify is not None and verify.exp  > datetime.utcnow():      
+            obj_in = UserUpdateDB(is_active=True)
+            await crud_user.update(session,  obj_in=obj_in)
+            return {"msg": "User Activated"}
+        elif verify is not None and verify.exp < datetime.utcnow():  
+            return UnauthorizedError("Expired verify code")
+        else:
+            return UnauthorizedError("Invalid verify code")
+
+       

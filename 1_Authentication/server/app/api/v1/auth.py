@@ -6,8 +6,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from schemas.tokens import TokenLogin
 from schemas.users import UserCreate, UserMe, User
 from schemas.verifies import VerifyCode
-from schemas.authetications import ChangePassword, TokenRefresh, RecoveryPassword, ComfirmVerifyCode
-
+from schemas.authetications import ChangePassword, TokenRefresh, VerifyCodeSend,VerifyCodeComfirm
 from services.authetications import AuthService
 
 auth_service = AuthService()
@@ -50,15 +49,15 @@ async def change_password(
         raise HTTPException(status_code=result.code, detail={"message": result.message, "code": result.code})
     return result
 
-@router.post("/recovery/code", response_model=VerifyCode)
-async def recovery_by_email(data: RecoveryPassword, session: SessionDep):
-    result = await auth_service.recovery_by_email_service(session, data)
+@router.post("/verify/code", response_model=VerifyCode)
+async def verify_code_by_email(data: VerifyCodeSend, session: SessionDep):
+    result = await auth_service.verify_code_by_email_service(session, data)
     if isinstance(result, Exception):
         raise HTTPException(status_code=result.code, detail={"message": result.message, "code": result.code})
     return result
 
-@router.post("/verify/code")
-async def confirm_verify_code(data: ComfirmVerifyCode, session: SessionDep):
+@router.post("/verify/code/confirm")
+async def confirm_verify_code(data: VerifyCodeComfirm, session: SessionDep):
     result = await auth_service.confirm_verify_code_service(session, data)
     if isinstance(result, Exception):
         raise HTTPException(status_code=result.code, detail={"message": result.message, "code": result.code})
@@ -67,6 +66,8 @@ async def confirm_verify_code(data: ComfirmVerifyCode, session: SessionDep):
 @router.get("/me", response_model=UserMe)
 async def read_users_me(
     session: SessionDep, 
-    current_user:User = Depends(RoleChecker(["admin", "manager", "user"]))
-):
-    return current_user
+    current_user: User = Depends(RoleChecker(["admin", "manager", "user"]))):
+    result = current_user.dict()
+    if result is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return result

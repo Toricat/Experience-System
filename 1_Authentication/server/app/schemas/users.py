@@ -1,30 +1,29 @@
 from typing import Optional
-from .items import ItemBase
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 class UserBase(BaseModel):
-    email: Optional[str] = None
-    full_name: Optional[str] = None
+    email: Optional[EmailStr] = Field(None, min_length=1) 
+    full_name: Optional[str] = Field(None, min_length=3) 
     image: Optional[str] = None
-    role: Optional[str] = "user"
+    role: Optional[str] = Field("user", min_length=1)  
+    is_active: Optional[bool] = None 
 
 class UserCreate(UserBase):
-    email: EmailStr
-    password: str
+    email: EmailStr  
+    password: str = Field(..., min_length=6)  
 
 class UserUpdate(UserBase):
-    password: Optional[str]
-    is_active: Optional[bool] 
+    password: Optional[str] = Field(None, min_length=6)  
+    is_active: Optional[bool] = None  
 
 class UserInDB(UserBase):
     hashed_password: str
     account_type: Optional[str] = "local"
     is_active: Optional[bool] = False
 
-
 class UserUpdateDB(UserBase):
-    hashed_password: Optional[str] 
-    is_active: Optional[bool] 
+    hashed_password: Optional[str] = None
+    is_active: Optional[bool] = None
 
 class User(UserBase):
     id: int
@@ -33,4 +32,4 @@ class User(UserBase):
         from_attributes=True
 
 class UserMe(UserBase):
-    items: list[ItemBase]
+    pass
