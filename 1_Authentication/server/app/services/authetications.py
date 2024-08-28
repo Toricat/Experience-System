@@ -4,7 +4,8 @@ from .common.exceptions import (
     ConflictError, 
     ForbiddenError,
     TooManyRequestsError,)
-from .common.utils import handle_error
+
+from .common.handle import handle_error
 
 from datetime import datetime
 
@@ -106,8 +107,6 @@ class AuthService:
 
         return {"verify_code": verify_code}
         
-
-
     @handle_error
     async def confirm_verify_code_service(self, session, data: VerifyCodeComfirm):
         verify = await crud_verify.get(session, verify_code = data.verify_code)

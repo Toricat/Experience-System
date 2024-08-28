@@ -4,18 +4,18 @@ from jose import JWTError, jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from datetime import datetime, timezone
-from typing import Annotated
+from typing import Annotated,Optional, Dict
 
 from core.config import settings
 from core.db import SessionLocal
 from core.security import ALGORITHM
 
 from schemas.users import User
+from schemas.tokens import AccessTokenPayload
 
 from crud.users import crud_user
 
 
-from schemas.tokens import AccessTokenPayload
 
 oauth2 = OAuth2PasswordBearer(
     tokenUrl="/api/v1/auth/login",
@@ -64,7 +64,7 @@ CurrentActiveUser = Annotated[User, Depends(get_current_active_user)]
 
 def RoleChecker(allowed_roles: list[str]):
     async def role_checker(
-        user_id: int = None,
+
         current_user: User = Depends(get_current_user)
     ) -> User:
         if current_user.role not in allowed_roles:
@@ -72,21 +72,28 @@ def RoleChecker(allowed_roles: list[str]):
                 status_code=403,
                 detail="Not enough permissions",
             )
-        
-  
-        if current_user.role == "user" and user_id is not None and current_user.id != user_id:
-            raise HTTPException(
-                status_code=403,
-                detail="You do not have permission to access this resource"
-            )
-
         return current_user
     
     return role_checker
 
-def ownership_check(owner_id, current_user: CurrentActiveUser):
-    if current_user.role not in ["admin"] and owner_id != current_user.id:
-        raise HTTPException(
-            status_code=403, 
-            detail="You do not have permission to access this resource"
-        )
+
+
+async def check_permissions(
+    current_user, 
+    action: str,
+    obj_in: Optional[dict] = None,
+    owner_field: str = "owner_id"
+) -> Dict[str, any]:
+    
+    kwargs = {}
+
+    if current_user.role != "admin":
+        if action in ["get", "get_multi", "update", "delete"]:
+            kwargs[owner_field] = current_user.id
+        elif action == "create" and obj_in:
+            if obj_in.get(owner_field) and obj_in[owner_field] != current_user.id:
+                raise HTTPException(status_code=403, detail="Cannot create item with a different owner_id")
+
+            obj_in[owner_field] = current_user.id
+
+    return kwargs

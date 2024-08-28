@@ -3,7 +3,6 @@ from typing import Optional
 
 from jose import jwt
 from passlib.context import CryptContext
-from pydantic import EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
@@ -43,6 +42,7 @@ def is_valid_password(plain_password: str, hashed_password: str) -> bool:
 
 def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
+
 
 
 

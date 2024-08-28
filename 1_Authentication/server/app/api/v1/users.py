@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 
-from api.deps import SessionDep, RoleChecker
-
+from api.deps import SessionDep, RoleChecker, check_permissions
 from schemas.users import UserCreate, User, UserUpdate
 from services.users import UserService
 
@@ -12,25 +11,28 @@ router = APIRouter(prefix="/users")
 @router.get("/", response_model=list[User])
 async def read_users(
     session: SessionDep, 
-    current_user: User = Depends(RoleChecker(["admin", "manager"])),                            
+    current_user: User = Depends(RoleChecker(["admin"])),                            
     offset: int = 0,
     limit: int = 100,
 ):  
-    result =  await user_service.get_users_service(session,offset=offset,limit=limit)
+    # Kiểm tra quyền truy cập
+    kwargs = await check_permissions(current_user, action="get_multi", owner_field="id")
+    
+    result = await user_service.get_users_service(session=session, offset=offset, limit=limit, kwargs=kwargs)
     if isinstance(result, Exception):
         raise HTTPException(status_code=result.code, detail={"message": result.message, "code": result.code})
     return result
   
 
-
 @router.get("/{user_id}/", response_model=User)
 async def read_user(
     user_id: int,
     session: SessionDep,
-    current_user: User = Depends(RoleChecker(["admin", "manager", "user"])),
-     
+    current_user: User = Depends(RoleChecker(["admin", "user"])), 
 ):
-    result =  await user_service.get_user_service(session, user_id)
+
+    kwargs = await check_permissions(current_user, action="get", owner_field="id")
+    result = await user_service.get_user_service(session=session, user_id=user_id, kwargs=kwargs)
     if isinstance(result, Exception):
         raise HTTPException(status_code=result.code, detail={"message": result.message, "code": result.code})
     return result
@@ -42,7 +44,10 @@ async def create_user(
     user_in: UserCreate, 
     current_user: User = Depends(RoleChecker(["admin"])) 
 ):
-    result = await user_service.create_user_service(session, user_in)
+
+    kwargs = await check_permissions(current_user, action="create", obj_in=user_in.dict(), owner_field="id")
+    
+    result = await user_service.create_user_service(session=session, user_in=user_in, kwargs=kwargs)
     if isinstance(result, Exception):
         raise HTTPException(status_code=result.code, detail={"message": result.message, "code": result.code})
     return result
@@ -54,19 +59,23 @@ async def update_user(
     user_in: UserUpdate,
     current_user: User = Depends(RoleChecker(["admin", "user"])) 
 ):
-  
-    result= await user_service.update_user_service(session, user_id, user_in)
+ 
+    kwargs = await check_permissions(current_user, action="update", owner_field="id")
+    result = await user_service.update_user_service(session=session, user_id=user_id, user_in=user_in, kwargs=kwargs)
     if isinstance(result, Exception):
         raise HTTPException(status_code=result.code, detail={"message": result.message, "code": result.code})
     return result
 
-@router.delete("/{user_id}", status_code=204)
+@router.delete("/{user_id}/", status_code=204)
 async def delete_user(
     user_id: int,
     session: SessionDep,
     current_user: User = Depends(RoleChecker(["admin"])) 
 ):
-    result= await user_service.delete_user_service(session, user_id)
+
+    kwargs = await check_permissions(current_user, action="delete", owner_field="id")
+    
+    result = await user_service.delete_user_service(session=session, user_id=user_id, kwargs=kwargs)
     if isinstance(result, Exception):
         raise HTTPException(status_code=result.code, detail={"message": result.message, "code": result.code})
     return result
