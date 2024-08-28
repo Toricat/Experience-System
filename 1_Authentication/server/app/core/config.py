@@ -51,7 +51,6 @@ class Settings(BaseSettings):
     ] = []
 
     PROJECT_NAME: str
-    SENTRY_DSN: HttpUrl | None = None
     DB_HOST: str
     DB_PORT: int = 5432
     DB_USER: str
@@ -124,4 +123,4 @@ class Settings(BaseSettings):
         return self
 
 
-settings = Settings()  # type: ignore
+settings = Settings()  

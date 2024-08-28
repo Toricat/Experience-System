@@ -29,7 +29,7 @@ async def get_session():
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
 TokenDep = Annotated[str, Depends(oauth2)]
 
-def get_token_data(token: TokenDep) -> AccessTokenPayload:
+async def get_token_data(token: TokenDep) -> AccessTokenPayload:
     try:
         secret_key = settings.SECRET_KEY
         payload = jwt.decode(token, secret_key, algorithms=[ALGORITHM])
@@ -68,32 +68,32 @@ def RoleChecker(allowed_roles: list[str]):
         current_user: User = Depends(get_current_user)
     ) -> User:
         if current_user.role not in allowed_roles:
-            raise HTTPException(
-                status_code=403,
-                detail="Not enough permissions",
-            )
+            raise HTTPException(status_code=403,detail="Not enough permissions",)
         return current_user
-    
     return role_checker
 
-
-
 async def check_permissions(
-    current_user, 
+    current_user,
     action: str,
     obj_in: Optional[dict] = None,
-    owner_field: str = "owner_id"
+    owner_field: str = "owner_id",
+    id: Optional[int] = None
 ) -> Dict[str, any]:
-    
+    if current_user.role == "admin":
+        return {}
+
+    if id and id != current_user.id:
+        raise HTTPException(status_code=403, detail="You are not allowed to perform this action")
+
     kwargs = {}
 
-    if current_user.role != "admin":
-        if action in ["get", "get_multi", "update", "delete"]:
-            kwargs[owner_field] = current_user.id
-        elif action == "create" and obj_in:
+    if action == "create":
+        if obj_in:
             if obj_in.get(owner_field) and obj_in[owner_field] != current_user.id:
-                raise HTTPException(status_code=403, detail="Cannot create item with a different owner_id")
-
-            obj_in[owner_field] = current_user.id
+                raise HTTPException(status_code=403, detail="You are not allowed to perform this action")
+    if action in ["get", "get_multi", "update", "delete"]:
+        if id is None:
+            kwargs[owner_field] = current_user.id
 
     return kwargs
+

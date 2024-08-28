@@ -25,22 +25,24 @@ class UserService:
         result = await crud_user.get(session, id=user_id,**kwargs )
         return  result
     
-
     @handle_error
     async def create_user_service(self, session, user_in: UserCreate,kwargs):
-        hashed_password = get_password_hash(user_in.password)
+
         obj_in = UserInDB(
             **user_in.dict(),
-            hashed_password=hashed_password,
+            hashed_password=get_password_hash(user_in.password),
         )
         result = await crud_user.create(session, obj_in,**kwargs)
         return result
 
     @handle_error
     async def update_user_service(self, session, user_id: int, user_in: UserUpdate,kwargs):
+        
         obj_in = UserUpdateDB(
             **user_in.dict(exclude_unset=True, exclude_none=True),
-            hashed_password=get_password_hash(user_in.password))
+        )
+        if user_in.password:
+            obj_in["hashed_password"] = get_password_hash(user_in.password)
         result = await crud_user.update(session, id=user_id, obj_in= obj_in,**kwargs )
         return result
 

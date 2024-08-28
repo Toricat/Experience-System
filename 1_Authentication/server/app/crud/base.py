@@ -79,7 +79,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         *args,
         **kwargs
     ) -> int:
-       
+        
         query = delete(self._model).filter(*args).filter_by(**kwargs)
         
        

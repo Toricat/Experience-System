@@ -1,3 +1,4 @@
+from datetime import datetime
 from .common.exceptions import (
     NotFoundError, 
     UnauthorizedError, 
@@ -6,8 +7,7 @@ from .common.exceptions import (
     TooManyRequestsError,)
 
 from .common.handle import handle_error
-
-from datetime import datetime
+from .common.utils import send_email,render_email_template
 
 from core.security import create_access_token, create_refresh_token, create_verify_code, get_password_hash, is_valid_password
 
@@ -42,7 +42,7 @@ class AuthService:
 
         return {"token_type": "bearer", "access_token": access_token, "refresh_token": refresh_token}
 
-    @handle_error
+    # @handle_error
     async def register_service(self, session, data: UserCreate):
         hashed_password = get_password_hash(data.password)
         new_user = UserInDB(
@@ -55,13 +55,17 @@ class AuthService:
             is_active=False
         )
 
-        user = await crud_user.create(session, obj_in=new_user)
-
+        # user = await crud_user.create(session, obj_in=new_user)
         verify_code, expire = create_verify_code()
-        obj_in = VerifyInDB(verify_code=verify_code, exp=expire, user_id=user.id)
-        await crud_verify.create(session, obj_in=obj_in)
-
-        return {"verify_code": verify_code}
+        # obj_in = VerifyInDB(verify_code=verify_code, exp=expire, user_id=user.id)
+        # await crud_verify.create(session, obj_in=obj_in)
+        html_content = render_email_template( "resigter_code.html",verification_code=verify_code )
+        print(html_content)
+        response = send_email(
+            data.email,
+            html_content=html_content)
+        print(verify_code)
+        return {"msg": response}
 
     @handle_error
     async def refresh_token_service(self, session, token_data: TokenRefresh):
@@ -109,6 +113,17 @@ class AuthService:
         
     @handle_error
     async def confirm_verify_code_service(self, session, data: VerifyCodeComfirm):
+        verify = await crud_verify.get(session, verify_code = data.verify_code)
+        if verify is not None and verify.exp  > datetime.utcnow():      
+            obj_in = UserUpdateDB(is_active=True)
+            await crud_user.update(session,  obj_in=obj_in)
+            return {"msg": "User Activated"}
+        elif verify is not None and verify.exp < datetime.utcnow():  
+            return UnauthorizedError("Expired verify code")
+        else:
+            return UnauthorizedError("Invalid verify code")
+    @handle_error
+    async def confirm_verify_code_recovery_account_service(self, session, data: VerifyCodeComfirm):
         verify = await crud_verify.get(session, verify_code = data.verify_code)
         if verify is not None and verify.exp  > datetime.utcnow():      
             obj_in = UserUpdateDB(is_active=True)

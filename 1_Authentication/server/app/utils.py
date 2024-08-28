@@ -1,30 +1,13 @@
+import smtplib
 import emails 
-from core.config import settings
-from pathlib import Path
+from app.core.config import settings
 
-def render_email_template(template_name: str, **kwargs) -> str:
-    """
-    Renders an HTML email template with provided key-value pairs.
 
-    :param template_name: The name of the HTML template file (e.g., 'register_code.html').
-    :param kwargs: Key-value pairs to replace in the template.
-    :return: A string containing the rendered HTML.
-    """
-    project_root = Path(__file__).resolve().parent.parent.parent.parent
+class EmailData:
+    html_content: str
+    subject: str
 
-    template_path = (project_root / "app" / "email-templates" / "build" / template_name)
-    print(template_path)
-    # template_path = "c:\\Users\\hamin\\Documents\\GitHub\\Personal\\1_Authentication\\server\\app\\email-templates\\build\\register_code.html"
-    # template_path = "c:/Users/hamin/Documents/GitHub/Personal/1_Authentication/server/app/email-templates/build/register_code.html"
-    with open(template_path, "r", encoding="utf-8") as file:
-        template_content = file.read()
-        print(template_content)
 
-    for key, value in kwargs.items():
-        placeholder = f"{{{{ {key} }}}}"
-        template_content = template_content.replace(placeholder, value)
-
-    return template_content
 
 def send_email(
         *,
@@ -53,7 +36,7 @@ def send_email(
     if settings.SMTP_PASSWORD:
         smtp_options["password"] = settings.SMTP_PASSWORD
 
-    response = message.send(to=email_to, smtp=smtp_options)
+    response =   message.send(to=email_to, smtp=smtp_options)
     print(response)
    
     

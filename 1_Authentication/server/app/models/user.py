@@ -15,4 +15,5 @@ class User(Base):
     is_active = Column(Boolean,nullable=False, default=False)
     verify =  relationship("Verify", back_populates="owner",uselist=False )
     token = relationship("Token", back_populates="owner",uselist=False )
-    item = relationship("Item", back_populates="owner", uselist=False)
+    item = relationship("Item", back_populates="owner", uselist= True)
+    # item = relationship("Item", back_populates="owner", uselist=False , cascade="all, delete-orphan")
