@@ -70,7 +70,6 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         # .returning(self._model)
         result = await session.execute(query)
         await session.commit()
-
         return await self.get(session, *args, **kwargs)
 
     async def delete(
@@ -79,13 +78,10 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         *args,
         **kwargs
     ) -> int:
-        
         query = delete(self._model).filter(*args).filter_by(**kwargs)
-        
-       
         result = await session.execute(query)
         await session.commit()
-        print(result.rowcount)
+        
         if result.rowcount == 0:
             return False
         return True

@@ -21,7 +21,6 @@ def parse_cors(v: Any) -> list[str] | str:
         return v
     raise ValueError(v)
 
-
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env", env_ignore_empty=True, extra="ignore"
@@ -35,13 +34,13 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 14
     # 5 minutes
     VERIFY_CODE_EXPIRE_MINUTES: int = 5
+    
     DOMAIN: str = "localhost"
     DOMAIN_HOST: int = 8000
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"
 
     @computed_field(return_type=str) 
     def server_host(self) -> str:
-        # Use HTTPS for anything other than local development
         if self.ENVIRONMENT == "local":
             return f"http://{self.DOMAIN}"
         return f"https://{self.DOMAIN}"
@@ -79,7 +78,6 @@ class Settings(BaseSettings):
     REDIS_HOST: str
     REDIS_PORT: int = 6379
 
-    # TODO: update type to EmailStr when sqlmodel supports it
     EMAILS_FROM_EMAIL: str | None = None
     EMAILS_FROM_NAME: str | None = None
 
@@ -89,23 +87,15 @@ class Settings(BaseSettings):
             self.EMAILS_FROM_NAME = self.PROJECT_NAME
         return self
 
-    EMAIL_RESET_TOKEN_EXPIRE_HOURS: int = 48
-
-    @computed_field(return_type=bool)  # Thêm return_type
+    @computed_field(return_type=bool) 
     def emails_enabled(self) -> bool:
         return bool(self.SMTP_HOST and self.EMAILS_FROM_EMAIL)
 
-    # TODO: update type to EmailStr when sqlmodel supports it
-    EMAIL_TEST_USER: str = "test@example.com"
-    # TODO: update type to EmailStr when sqlmodel supports it
-    FIRST_SUPERUSER: str
-    FIRST_SUPERUSER_PASSWORD: str
-
-    def _check_default_secret(self, var_name: str, value: str | None) -> None:
-        if value == "changethis":
+    def _check_default_secret(self, var_name: str, value: str, default_value: str | None) -> None:
+        if value == default_value:
             message = (
-                f'The value of {var_name} is "changethis", '
-                "for security, please change it, at least for deployments."
+                f'The value of {var_name} is set to the default: "{value}". '
+                "Please change it to a secure value."
             )
             if self.ENVIRONMENT == "local":
                 warnings.warn(message, stacklevel=1)
@@ -114,13 +104,9 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def _enforce_non_default_secrets(self) -> Self:
-        self._check_default_secret("SECRET_KEY", self.SECRET_KEY)
-        self._check_default_secret("DB_PASSWORD", self.DB_PASSWORD)
-        self._check_default_secret(
-            "FIRST_SUPERUSER_PASSWORD", self.FIRST_SUPERUSER_PASSWORD
-        )
-
+        self._check_default_secret("SECRET_KEY", self.SECRET_KEY, "123456")
+        self._check_default_secret("DB_PASSWORD", self.DB_PASSWORD,"123456")
+        self._check_default_secret("SMTP_PASSWORD", self.SMTP_PASSWORD, "123456")
         return self
-
 
 settings = Settings()  

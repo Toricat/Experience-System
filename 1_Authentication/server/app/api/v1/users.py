@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
-from api.deps import SessionDep, RoleChecker, check_permissions
+
+from api.deps import SessionDep, RoleChecker, check_permissions,handle_service_result
+
 from schemas.users import UserCreate, User, UserUpdate
+from schemas.utils import Message
 from services.users import UserService
 
 user_service = UserService()
@@ -15,13 +17,9 @@ async def read_users(
     offset: int = 0,
     limit: int = 100,
 ):  
-
     kwargs = await check_permissions(current_user, action="get_multi", owner_field="id")
-    
     result = await user_service.get_users_service(session=session, offset=offset, limit=limit, kwargs=kwargs)
-    if isinstance(result, Exception):
-        raise HTTPException(status_code=result.code, detail={"message": result.message, "code": result.code})
-    return result
+    return  handle_service_result(result)
   
 
 @router.get("/{user_id}/", response_model=User)
@@ -30,12 +28,9 @@ async def get_user(
     session: SessionDep,
     current_user: User = Depends(RoleChecker(["admin", "user"])), 
 ):
-
     kwargs = await check_permissions(current_user, action="get", owner_field="id", id=user_id)
     result = await user_service.get_user_service(session=session, user_id=user_id, kwargs=kwargs)
-    if isinstance(result, Exception):
-        raise HTTPException(status_code=result.code, detail={"message": result.message, "code": result.code})
-    return result
+    return  handle_service_result(result)
 
 
 @router.post("/", response_model=User)
@@ -44,27 +39,22 @@ async def create_user(
     user_in: UserCreate, 
     current_user: User = Depends(RoleChecker(["admin"])) 
 ):
-
     kwargs = await check_permissions(current_user, action="create", obj_in=user_in.dict(), owner_field="id")
     result = await user_service.create_user_service(session=session, user_in=user_in, kwargs=kwargs)
-    if isinstance(result, Exception):
-        raise HTTPException(status_code=result.code, detail={"message": result.message, "code": result.code})
-    return result
+    return  handle_service_result(result)
 
 @router.put("/{user_id}/", response_model=User)
 async def update_user(
     user_id: int,
     session: SessionDep,
     user_in: UserUpdate,
-    current_user: User = Depends(RoleChecker(["user, admin"])) 
+    current_user: User = Depends(RoleChecker([" admin"])) 
 ):
     kwargs = await check_permissions(current_user, action="update", owner_field="id", id=user_id)
     result = await user_service.update_user_service(session=session, user_id=user_id, user_in=user_in, kwargs=kwargs)
-    if isinstance(result, Exception):
-        raise HTTPException(status_code=result.code, detail={"message": result.message, "code": result.code})
-    return result
+    return  handle_service_result(result)
 
-@router.delete("/{user_id}/", status_code=204)
+@router.delete("/{user_id}/", response_model=Message)
 async def delete_user(
     user_id: int,
     session: SessionDep,
@@ -74,6 +64,4 @@ async def delete_user(
     if user_id == current_user.id:
         raise HTTPException(status_code=400, detail="You can't delete yourself")
     result = await user_service.delete_user_service(session=session, user_id=user_id, kwargs=kwargs)
-    if isinstance(result, Exception):
-        raise HTTPException(status_code=result.code, detail={"message": result.message, "code": result.code})
-    return result
+    return  handle_service_result(result)

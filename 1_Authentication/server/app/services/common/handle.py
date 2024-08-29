@@ -1,7 +1,7 @@
 from sqlalchemy.exc import IntegrityError, NoResultFound, OperationalError, SQLAlchemyError
 from sqlalchemy.orm.exc import UnmappedInstanceError, UnmappedColumnError, UnmappedClassError,DetachedInstanceError,UnmappedError
 from .exceptions import (
-    ServiceError,
+    ServiceResponse,
     NotFoundError, 
     ConflictError, 
     TooManyRequestsError,
@@ -40,13 +40,13 @@ def handle_error(func):
         except BadRequestError:
             return BadRequestError("Bad request.")
         except SQLAlchemyError:
-            return ServiceError("Database error.",code=500)
+            return ServiceResponse("Database error.",code=500)
         except AttributeError as e:
             if "'NoneType' object has no attribute" in str(e):
                 return NotFoundError("Resource not found or does not exist.")
-            return ServiceError("Attribute error.")
+            return ServiceResponse("Attribute error.")
         except Exception as e:
             if "'NoneType' object has no attribute" in str(e):
                 return NotFoundError("Resource not found or does not exist.")
-            return ServiceError(f"An unexpected error occurred: {str(e)}")
+            return ServiceResponse(f"An unexpected error occurred: {str(e)}")
     return wrapper

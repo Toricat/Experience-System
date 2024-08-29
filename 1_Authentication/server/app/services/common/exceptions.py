@@ -1,50 +1,54 @@
-class ServiceError(Exception):
-    """Base class for service errors."""
-    def __init__(self, message: str, code: int = 500):
+class ServiceResponse(Exception):
+    """Base class for service responses."""
+    def __init__(self, message: str, code: int = 200):
         self.message = message
         self.code = code
         super().__init__(self.message)
 
 
-class BadRequestError(ServiceError):
+class SuccessResponse(ServiceResponse):
+    def __init__(self, message="Success", code=200):
+        super().__init__(message, code)
+
+class BadRequestError(ServiceResponse):
     def __init__(self, message="Bad Request", code=400):
         super().__init__(message, code)
 
-class UnauthorizedError(ServiceError):
+class UnauthorizedError(ServiceResponse):
     def __init__(self, message="Unauthorized", code=401):
         super().__init__(message, code)
 
-class ForbiddenError(ServiceError):
+class ForbiddenError(ServiceResponse):
     def __init__(self, message="Forbidden", code=403):
         super().__init__(message, code)
 
-class NotFoundError(ServiceError):
+class NotFoundError(ServiceResponse):
     def __init__(self, message="Not Found", code=404):
         super().__init__(message, code)
 
-class MethodNotAllowedError(ServiceError):
+class MethodNotAllowedError(ServiceResponse):
     def __init__(self, message="Method Not Allowed", code=405):
         super().__init__(message, code)
 
-class ConflictError(ServiceError):
+class ConflictError(ServiceResponse):
     def __init__(self, message="Conflict", code=409):
         super().__init__(message, code)
 
-class GoneError(ServiceError):
+class GoneError(ServiceResponse):
     def __init__(self, message="Gone", code=410):
         super().__init__(message, code)
 
-class TooManyRequestsError(ServiceError):
+class TooManyRequestsError(ServiceResponse):
     def __init__(self, message="Too Many Requests", code=429):
         super().__init__(message, code)
-class AttributeError(ServiceError):
+class AttributeError(ServiceResponse):
     def __init__(self, message="Attribute Error", code=500):
         super().__init__(message, code)
-class DatabaseTimeoutError(ServiceError):
+class DatabaseTimeoutError(ServiceResponse):
     def __init__(self, message="Database Timeout", code=504):
         super().__init__(message, code)
 
-class DatabaseConnectionError(ServiceError):
+class DatabaseConnectionError(ServiceResponse):
     def __init__(self, message="Database Connection Error", code=505):
         super().__init__(message, code)
 

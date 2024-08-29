@@ -1,11 +1,12 @@
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError, jwt
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from datetime import datetime, timezone
 from typing import Annotated,Optional, Dict
 
+from jose import JWTError, jwt
 from core.config import settings
 from core.db import SessionLocal
 from core.security import ALGORITHM
@@ -97,3 +98,7 @@ async def check_permissions(
 
     return kwargs
 
+def handle_service_result(result):
+    if isinstance(result, Exception):
+        raise HTTPException(status_code=result.code, detail={"message": result.message, "code": result.code})
+    return result

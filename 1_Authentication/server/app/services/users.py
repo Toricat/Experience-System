@@ -1,4 +1,5 @@
 from .common.exceptions import (
+    SuccessResponse,
     NotFoundError, 
     UnauthorizedError, 
     ConflictError, 
@@ -9,7 +10,6 @@ from .common.exceptions import (
 from .common.handle import handle_error
 
 from core.security import get_password_hash
-
 from crud.users import crud_user
 from schemas.users import UserCreate, UserUpdate, UserInDB,UserUpdateDB
 
@@ -27,7 +27,6 @@ class UserService:
     
     @handle_error
     async def create_user_service(self, session, user_in: UserCreate,kwargs):
-
         obj_in = UserInDB(
             **user_in.dict(),
             hashed_password=get_password_hash(user_in.password),
@@ -37,7 +36,6 @@ class UserService:
 
     @handle_error
     async def update_user_service(self, session, user_id: int, user_in: UserUpdate,kwargs):
-        
         obj_in = UserUpdateDB(
             **user_in.dict(exclude_unset=True, exclude_none=True),
         )
@@ -49,5 +47,9 @@ class UserService:
     @handle_error
     async def delete_user_service(self, session, user_id: int,kwargs):
         result= await crud_user.delete(session, id=user_id,**kwargs )
-        return result
+        if not result:
+            return NotFoundError("Resource not found or does not exist.")
+        return SuccessResponse("Delete success")
+        
+      
   

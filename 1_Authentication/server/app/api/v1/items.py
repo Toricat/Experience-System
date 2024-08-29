@@ -1,8 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 
-from api.deps import SessionDep, RoleChecker,check_permissions
+from api.deps import SessionDep, RoleChecker,check_permissions,handle_service_result
+
 from schemas.items import Item, ItemCreate, ItemUpdate
 from schemas.users import User
+from schemas.utils import Message
 from services.items import ItemService
 
 item_service = ItemService()
@@ -19,14 +21,10 @@ async def get_multi_items(
     """
     Retrieve items
     """
-
     kwargs = await check_permissions(current_user, action="get_multi")
-
     result = await item_service.get_multi_items_service( session=session, offset=offset, limit=limit, kwargs=kwargs)
     
-    if isinstance(result, Exception):
-        raise HTTPException(status_code=result.code, detail={"message": result.message, "code": result.code})
-    return result
+    return handle_service_result(result)
 
 @router.get("/{item_id}/", response_model=Item)
 async def get_item(
@@ -40,9 +38,7 @@ async def get_item(
     kwargs = await check_permissions(current_user, action="get")
     result = await item_service.get_item_service( session=session, item_id = item_id, kwargs=kwargs)
     
-    if isinstance(result, Exception):
-        raise HTTPException(status_code=result.code, detail={"message": result.message, "code": result.code})
-    return result
+    return handle_service_result(result)
 
 @router.post("/", response_model=Item)
 async def create_item(
@@ -55,9 +51,7 @@ async def create_item(
     """
     kwargs = await check_permissions(current_user, action="create", obj_in=item_in.dict())
     result = await item_service.create_item_service( session=session, item_in=item_in ,kwargs=kwargs)
-    if isinstance(result, Exception):
-        raise HTTPException(status_code=result.code, detail={"message": result.message, "code": result.code})
-    return result
+    return handle_service_result(result)
 
 
 @router.put("/{item_id}/", response_model=Item)
@@ -70,26 +64,19 @@ async def update_item(
     """
     Update an item
     """
-
     kwargs = await check_permissions(current_user,action="update",obj_in=item_in.dict())
     result = await item_service.update_item_service(session=session,item_id=item_id, item_in=item_in,  kwargs=kwargs)
-    if isinstance(result, Exception):
-        raise HTTPException(status_code=result.code, detail={"message": result.message, "code": result.code})
-    return result
+    return handle_service_result(result)
 
-@router.delete("/{item_id}/")
+@router.delete("/{item_id}/", response_model=Message)
 async def delete_item(
     item_id: int,
     session: SessionDep,
-    current_user: User = Depends(RoleChecker(["admin"],)),
+    current_user: User = Depends(RoleChecker(["admin", "user"])),
 ):
     """
     Delete an item
     """
-
     kwargs = await check_permissions(current_user, action="delete")
-
     result = await item_service.delete_item_service( session=session, item_id=item_id,  kwargs=kwargs)
-    if isinstance(result, Exception):
-        raise HTTPException(status_code=result.code, detail={"message": result.message, "code": result.code})
-    return {"msg": "Item deleted"}
+    return handle_service_result(result)

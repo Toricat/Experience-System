@@ -1,4 +1,5 @@
 from .common.exceptions import (
+    SuccessResponse,
     NotFoundError, 
     UnauthorizedError, 
     ConflictError, 
@@ -18,6 +19,7 @@ class ItemService:
 
     @handle_error
     async def get_multi_items_service(self,session, offset: int, limit: int,kwargs):
+ 
         result= await crud_item.get_multi(session, offset=offset, limit=limit,**kwargs )
         return result
     
@@ -44,6 +46,6 @@ class ItemService:
         result=await crud_item.delete(session, id=item_id,**kwargs )
         if not result:
             return NotFoundError("Resource not found or does not exist.")
-        return  result
+        return  SuccessResponse("Delete success")
     
   

@@ -1,91 +1,69 @@
-import emails 
-from core.config import settings
+import smtplib
+import datetime
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
+from email.utils import formataddr
 from pathlib import Path
+from core.config import settings
 
-def render_email_template(template_name: str, **kwargs) -> str:
-    """
-    Renders an HTML email template with provided key-value pairs.
-
-    :param template_name: The name of the HTML template file (e.g., 'register_code.html').
-    :param kwargs: Key-value pairs to replace in the template.
-    :return: A string containing the rendered HTML.
-    """
-    project_root = Path(__file__).resolve().parent.parent.parent.parent
-
-    template_path = (project_root / "app" / "email-templates" / "build" / template_name)
-    print(template_path)
-    # template_path = "c:\\Users\\hamin\\Documents\\GitHub\\Personal\\1_Authentication\\server\\app\\email-templates\\build\\register_code.html"
-    # template_path = "c:/Users/hamin/Documents/GitHub/Personal/1_Authentication/server/app/email-templates/build/register_code.html"
+async def render_email_template(template_name: str, **kwargs) -> str:
+    project_root = Path(__file__).resolve().parent.parent.parent
+    template_path = project_root / "email-templates" / "build" / template_name
+    
     with open(template_path, "r", encoding="utf-8") as file:
         template_content = file.read()
-        print(template_content)
+    
+    print("Template content:", template_content)
+    print("Kwargs:", kwargs)
+    
+    return template_content.format(**kwargs)
 
-    for key, value in kwargs.items():
-        placeholder = f"{{{{ {key} }}}}"
-        template_content = template_content.replace(placeholder, value)
-
-    return template_content
-
-def send_email(
-        *,
+async def send_email(
+    *,
     email_to: str,
     subject: str = "",
-    html_content: str = "",
-    attachments: list[str] = [],
-    ) -> None:
+    text_content: str = "",
+    html_content: str = None,
+    attachments: list[str] = []
+) -> str:
+    if not settings.emails_enabled:
+        return "Email settings not enabled."
 
-    assert settings.emails_enabled, "no provided configuration for email variables"
-    message = emails.Message(
-        subject=subject,
-        html=html_content,
-        mail_from=(settings.EMAILS_FROM_NAME, settings.EMAILS_FROM_EMAIL),
-    )
-    if attachments:
-        message.attach()
+    try:
+        message = MIMEMultipart("alternative") 
+        message['From'] = formataddr((settings.EMAILS_FROM_NAME, settings.EMAILS_FROM_EMAIL))
+        message['To'] = email_to
+        message['Subject'] = subject
+        message['Date'] = datetime.datetime.now().strftime("%a, %d %b %Y %H:%M:%S %z")
+        if text_content:
+            part1 = MIMEText(text_content, "plain") 
+            message.attach(part1 )
+        if html_content:
+            part2 = MIMEText(html_content, "html") 
+            message.attach(part2)
 
-    smtp_options = {"host": settings.SMTP_HOST, "port": settings.SMTP_PORT}
-    if settings.SMTP_TLS:
-        smtp_options["tls"] = True
-    elif settings.SMTP_SSL:
-        smtp_options["ssl"] = True
-    if settings.SMTP_USER:
-        smtp_options["user"] = settings.SMTP_USER
-    if settings.SMTP_PASSWORD:
-        smtp_options["password"] = settings.SMTP_PASSWORD
+        for attachment in attachments:
+            part = MIMEBase('application', "octet-stream")
+            try:
+                with open(attachment, "rb") as file:
+                    part.set_payload(file.read())
+                encoders.encode_base64(part)
+                part.add_header('Content-Disposition', f'attachment; filename="{Path(attachment).name}"')
+                message.attach(part)
+            except Exception as e:
+                # return f"Failed to attach file {attachment}: {e}"
+                return False
 
-    response = message.send(to=email_to, smtp=smtp_options)
-    print(response)
-   
-    
+        server = smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT)
+        if settings.SMTP_SSL:
+            server.starttls()
+        server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
+        server.sendmail(settings.EMAILS_FROM_EMAIL, email_to, message.as_string())
+        server.quit()
 
-
-
-
-
-
-
-
-
-# def send_email(
-#     *,
-#     email_to: str,
-#     subject: str = "",
-#     html_content: str = "",
-# ) -> None:
-#     assert settings.emails_enabled, "no provided configuration for email variables"
-#     message = emails.Message(
-#         subject=subject,
-#         html=html_content,
-#         mail_from=(settings.EMAILS_FROM_NAME, settings.EMAILS_FROM_EMAIL),
-#     )
-#     smtp_options = {"host": settings.SMTP_HOST, "port": settings.SMTP_PORT}
-#     if settings.SMTP_TLS:
-#         smtp_options["tls"] = True
-#     elif settings.SMTP_SSL:
-#         smtp_options["ssl"] = True
-#     if settings.SMTP_USER:
-#         smtp_options["user"] = settings.SMTP_USER
-#     if settings.SMTP_PASSWORD:
-#         smtp_options["password"] = settings.SMTP_PASSWORD
-#     response = message.send(to=email_to, smtp=smtp_options)
-#     logging.info(f"send email result: {response}")
+        # return f"Email sent successfully to {email_to}"
+        return True
+    except smtplib.SMTPException as e:
+        return False
