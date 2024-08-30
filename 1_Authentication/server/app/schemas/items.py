@@ -1,6 +1,7 @@
 from typing import Optional
 from pydantic import BaseModel, Field
 
+# Item Schemas
 class ItemBase(BaseModel):
     title: Optional[str] = Field(None, min_length=1)
     description: Optional[str] = None
@@ -10,18 +11,20 @@ class ItemCreate(ItemBase):
 
 class ItemUpdate(ItemBase):
     pass
-class ItemInDB(ItemBase):
-    owner_id: int = Field(..., gt=0)
-class ItemUpdateDB(ItemBase):
-    pass
 
-class Item(ItemBase):
-    id: int
+class ItemInDB(ItemBase):
+    id: Optional[int] = None
     owner_id: int = Field(..., gt=0)
 
     class Config:
-        from_attributes=True
+        orm_mode = True
 
+class ItemUpdateInDB(BaseModel):
+    title: Optional[str] = Field(None, min_length=1)
+    description: Optional[str] = None
 
+    class Config:
+        orm_mode = True
 
-
+class Item(ItemInDB):
+    pass

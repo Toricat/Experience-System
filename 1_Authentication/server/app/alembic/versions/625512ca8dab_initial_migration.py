@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: 7410a5fb4d41
+Revision ID: 625512ca8dab
 Revises: 
-Create Date: 2024-08-16 10:35:35.656428
+Create Date: 2024-08-30 12:11:05.930912
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '7410a5fb4d41'
+revision: str = '625512ca8dab'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -38,7 +38,7 @@ def upgrade() -> None:
     sa.Column('title', sa.String(length=225), nullable=True),
     sa.Column('description', sa.String(length=225), nullable=True),
     sa.Column('owner_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['owner_id'], ['user.id'], ),
+    sa.ForeignKeyConstraint(['owner_id'], ['user.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_item_id'), 'item', ['id'], unique=False)
@@ -48,7 +48,7 @@ def upgrade() -> None:
     sa.Column('refresh_token', sa.String(length=225), nullable=True),
     sa.Column('exp', sa.DateTime(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_token_id'), 'token', ['id'], unique=False)
@@ -58,7 +58,7 @@ def upgrade() -> None:
     sa.Column('verify_code', sa.String(length=225), nullable=True),
     sa.Column('exp', sa.DateTime(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_verify_id'), 'verify', ['id'], unique=False)

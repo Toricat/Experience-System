@@ -1,6 +1,6 @@
 from crud.base import CRUDBase
 from models.token import Token
-from schemas.tokens import TokenInDB, TokenUpdateDB
+from schemas.tokens import TokenInDB, TokenUpdate
 
-CRUDToken= CRUDBase[Token,TokenInDB, TokenUpdateDB]
+CRUDToken= CRUDBase[Token,TokenInDB, TokenUpdate]
 crud_token = CRUDToken(Token)

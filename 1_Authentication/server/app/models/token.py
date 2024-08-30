@@ -6,8 +6,8 @@ class Token(Base):
     id = Column(Integer, primary_key=True, index=True)
     refresh_token=Column(String(225), index=True)
     exp = Column(DateTime, nullable=False)
-    user_id = Column(Integer, ForeignKey("user.id"))
-    owner = relationship("User", back_populates="token") 
+    user_id = Column(Integer, ForeignKey("user.id",ondelete="CASCADE"))
+    owner = relationship("User", back_populates="token", passive_deletes=True) 
 
 
 

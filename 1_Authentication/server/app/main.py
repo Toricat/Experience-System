@@ -1,8 +1,8 @@
 from arq import create_pool
 from arq.connections import RedisSettings
-from starlette.middleware.base import BaseHTTPMiddleware
-from fastapi import FastAPI
 
+from fastapi import FastAPI
+from fastapi.routing import APIRoute
 from starlette.middleware.cors import CORSMiddleware
 import logging
 
@@ -12,6 +12,8 @@ from core.config import settings
 
 from logger import logger  
 
+def custom_generate_unique_id(route: APIRoute) -> str:
+    return f"{route.tags[0]}-{route.name}"
 
 # async def create_redis_pool():
 #     redis.pool = await create_pool(
@@ -23,7 +25,8 @@ from logger import logger
 
 
 def create_application() -> FastAPI:
-    application = FastAPI(title=settings.PROJECT_NAME)
+    application = FastAPI(title=settings.PROJECT_NAME,
+                          generate_unique_id_function=custom_generate_unique_id)
     logger.info("Starting application...") 
     # application.add_event_handler("startup", create_redis_pool)
     # application.add_event_handler("shutdown", close_redis_pool)

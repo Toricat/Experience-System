@@ -1,6 +1,7 @@
 from crud.base import CRUDBase
 from models.verify import Verify
-from schemas.verifies import VerifyInDB, VerifyUpdateDB
+from schemas.verifies import VerifyInDB, VerifyUpdate
 
-CRUDVerify = CRUDBase[Verify, VerifyInDB, VerifyUpdateDB]
+CRUDVerify = CRUDBase[Verify, VerifyInDB, VerifyUpdate]
 crud_verify = CRUDVerify(Verify)
+

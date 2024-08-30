@@ -11,7 +11,7 @@ from .common.handle import handle_error
 
 from core.security import get_password_hash
 from crud.users import crud_user
-from schemas.users import UserCreate, UserUpdate, UserInDB,UserUpdateDB
+from schemas.users import UserCreate, UserUpdate, UserInDB,UserUpdate
 
 class UserService:
 
@@ -36,7 +36,7 @@ class UserService:
 
     @handle_error
     async def update_user_service(self, session, user_id: int, user_in: UserUpdate,kwargs):
-        obj_in = UserUpdateDB(
+        obj_in = UserUpdate(
             **user_in.dict(exclude_unset=True, exclude_none=True),
         )
         if user_in.password:
@@ -46,6 +46,7 @@ class UserService:
 
     @handle_error
     async def delete_user_service(self, session, user_id: int,kwargs):
+        print(kwargs)
         result= await crud_user.delete(session, id=user_id,**kwargs )
         if not result:
             return NotFoundError("Resource not found or does not exist.")
