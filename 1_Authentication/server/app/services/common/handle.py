@@ -48,5 +48,5 @@ def handle_error(func):
         except Exception as e:
             if "'NoneType' object has no attribute" in str(e):
                 return NotFoundError("Resource not found or does not exist.")
-            return ServiceResponse(f"An unexpected error occurred: {str(e)}")
+            return BadRequestError(f"An unexpected error occurred: {str(e)}")
     return wrapper

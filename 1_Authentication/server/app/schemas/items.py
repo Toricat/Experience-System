@@ -17,14 +17,14 @@ class ItemInDB(ItemBase):
     owner_id: int = Field(..., gt=0)
 
     class Config:
-        orm_mode = True
+        from_attributes=True
 
 class ItemUpdateInDB(BaseModel):
     title: Optional[str] = Field(None, min_length=1)
     description: Optional[str] = None
 
     class Config:
-        orm_mode = True
+        from_attributes=True
 
 class Item(ItemInDB):
     pass

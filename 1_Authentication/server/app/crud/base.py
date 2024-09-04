@@ -1,7 +1,8 @@
 from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 
 from pydantic import BaseModel
-from sqlalchemy import select, update , delete, asc, desc
+from sqlalchemy import select, update , delete, asc, desc,column,text
+from sqlalchemy.orm import load_only
 from sqlalchemy.ext.asyncio import AsyncSession
 
 ModelType = TypeVar("ModelType")
@@ -22,6 +23,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         db_obj = self._model(**obj_in_data)
         session.add(db_obj)
         await session.commit()
+        await session.refresh(db_obj)
         return db_obj
 
     async def get(
@@ -31,13 +33,14 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         *args, 
         **kwargs
     ) -> Optional[ModelType]:
+        query = select(self._model).filter(*args).filter_by(**kwargs)
+
         if return_columns:
-            query = select(*return_columns).filter(*args).filter_by(**kwargs)
-        else:
-            query = select(self._model).filter(*args).filter_by(**kwargs)
+            model_columns = [getattr(self._model, column) for column in return_columns]
+            query = query.options(load_only(*model_columns))
+
         result = await session.execute(query)
         return result.scalars().first()
-
     async def get_multi(
         self,
         session: AsyncSession,
@@ -49,10 +52,11 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         order_direction: str = "desc",
         **kwargs,
     ) -> List[ModelType]:
+  
+        query = select(self._model).filter(*args).filter_by(**kwargs)
         if return_columns:
-            query = select(*return_columns).filter(*args).filter_by(**kwargs)
-        else:
-            query = select(self._model).filter(*args).filter_by(**kwargs)
+            model_columns = [getattr(self._model, column) for column in return_columns]
+            query = query.options(load_only(*model_columns))
 
         if order_by:
             if order_direction == "desc":
@@ -72,7 +76,6 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         *args,
         **kwargs
     ) -> Optional[ModelType]:
-
         update_data = obj_in if isinstance(obj_in, dict) else obj_in.dict(exclude_unset=True, exclude_none=True)
         query = update(self._model).filter(*args).filter_by(**kwargs).values(**update_data)
         #if you use postgres, you can use .returning(self._model):

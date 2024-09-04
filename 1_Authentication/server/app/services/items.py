@@ -12,7 +12,8 @@ from crud.items import crud_item
 from schemas.items import ItemCreate, ItemUpdate, ItemInDB
 
 class ItemService:
-
+    def __init__(self):
+        pass
     @handle_error
     async def get_item_service(self,session, item_id: int,kwargs):
         return await crud_item.get(session, id=item_id, **kwargs)

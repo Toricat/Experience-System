@@ -25,7 +25,7 @@ def custom_generate_unique_id(route: APIRoute) -> str:
 
 
 def create_application() -> FastAPI:
-    application = FastAPI(title=settings.PROJECT_NAME,
+    application = FastAPI(title=settings.APP_NAME,
                           generate_unique_id_function=custom_generate_unique_id)
     logger.info("Starting application...") 
     # application.add_event_handler("startup", create_redis_pool)

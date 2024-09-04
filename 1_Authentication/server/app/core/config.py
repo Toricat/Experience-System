@@ -49,7 +49,7 @@ class Settings(BaseSettings):
         list[AnyUrl] | str, BeforeValidator(parse_cors)
     ] = []
 
-    PROJECT_NAME: str
+    APP_NAME: str
     DB_HOST: str
     DB_PORT: int = 5432
     DB_USER: str
@@ -80,7 +80,7 @@ class Settings(BaseSettings):
 
     EMAILS_FROM_EMAIL: str | None = None
     EMAILS_FROM_NAME: str | None = None
-
+    FRONTEND_LINK: HttpUrl = "http://localhost:3000"
     @model_validator(mode="after")
     def _set_default_emails_from(self) -> Self:
         if not self.EMAILS_FROM_NAME:

@@ -11,7 +11,10 @@ class TokenRefresh(BaseModel):
 class VerifyEmailSend(BaseModel):
     email: str
 class VerifyCodeComfirm(BaseModel):
+    email: str
     verify_code: str 
 class VerifyCodeChangePassword(BaseModel):
-    new_password: str
     verify_code: str
+    email: str
+    new_password: str
+  

@@ -14,7 +14,8 @@ from crud.users import crud_user
 from schemas.users import UserCreate, UserUpdate, UserInDB,UserUpdate
 
 class UserService:
-
+    def __init__(self):
+        pass
     @handle_error
     async def get_users_service(self, session, offset: int, limit: int,kwargs):
         result =  await crud_user.get_multi(session, offset=offset, limit=limit,**kwargs )

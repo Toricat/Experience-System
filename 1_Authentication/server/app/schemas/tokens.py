@@ -19,13 +19,13 @@ class TokenInDB(TokenBase):
     user_id: int
 
     class Config:
-        orm_mode = True
+          from_attributes=True
 
 class Token(TokenInDB):
     owner: Optional[User] = None
 
     class Config:
-        orm_mode = True
+          from_attributes=True
 
 
 class TokenLogin(BaseModel):

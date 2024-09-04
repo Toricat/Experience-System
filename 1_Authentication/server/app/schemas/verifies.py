@@ -58,7 +58,7 @@ class RecoveryCodeUpdate(RecoveryCodeBase):
     pass
 
 class RecoveryCodeInDB(RecoveryCodeBase):
-    id: Optional[int]
+    id: Optional[int] = None
     user_id: int
 
     class Config:

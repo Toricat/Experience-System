@@ -7,6 +7,8 @@ from email import encoders
 from email.utils import formataddr
 from pathlib import Path
 from core.config import settings
+from jinja2 import Template
+from pathlib import Path
 
 async def render_email_template(template_name: str, **kwargs) -> str:
     project_root = Path(__file__).resolve().parent.parent.parent
@@ -14,11 +16,14 @@ async def render_email_template(template_name: str, **kwargs) -> str:
     
     with open(template_path, "r", encoding="utf-8") as file:
         template_content = file.read()
+        template = Template(template_content)
+        html_content = template.render(**kwargs,app_name=settings.APP_NAME,activate_url=f"{settings.FRONTEND_LINK}/auth/account-verify?token={kwargs['verification_code']}&email={kwargs['email']}")
     
-    print("Template content:", template_content)
+    print("Template content:", html_content)
     print("Kwargs:", kwargs)
     
-    return template_content.format(**kwargs)
+    return html_content
+
 
 async def send_email(
     *,
