@@ -88,7 +88,7 @@ class  VerifyService:
         
         @handle_error
         async def confirm_active_code(self, session, data: VerifyCodeComfirm):
-            verify_active = await crud_verify.get(session,return_columns=["exp_active","user_id"], code_active=data.verify_code,email=data.email)
+            verify_active = await crud_verify.get(session,return_columns=["exp_active","user_id"], code_active=data.verify_code)
             if verify_active is None:
                 return UnauthorizedError("Invalid verify code")
             if verify_active.exp_active < datetime.utcnow():
@@ -103,7 +103,6 @@ class  VerifyService:
         @handle_error
         async def confirm_active_code_service(self, session, data: VerifyCodeComfirm):
             verify_active = await self.confirm_active_code(session,data)
-
             if isinstance(verify_active, UnauthorizedError):
                 return verify_active
             return SuccessResponse("Active code confirmed")
@@ -114,7 +113,7 @@ class  VerifyService:
             if isinstance(verify_active, UnauthorizedError):
                 return verify_active
             obj_in = UserActivate(is_active=True)
-            await crud_user.update(session, id=verify_active.user_id, email=data.email,obj_in=obj_in)
+            await crud_user.update(session, id=verify_active.id, email=data.email,obj_in=obj_in)
             return SuccessResponse("User Activated")
 
         @handle_error
@@ -134,7 +133,7 @@ class  VerifyService:
         @handle_error
         async def confirm_recovery_code_service(self, session, data: VerifyCodeComfirm):
             verify_recovery = await self.confirm_recovery_code(session,data)
-            print(verify_recovery)
+
             if isinstance( verify_recovery, UnauthorizedError):
                 return  verify_recovery
             return SuccessResponse("Recovery code confirmed")
@@ -142,7 +141,7 @@ class  VerifyService:
         @handle_error
         async def confirm_recovery_code_change_password_service(self, session, data: VerifyCodeChangePassword):
             verify_recovery = await self.confirm_recovery_code(session, data=data)
-            print(verify_recovery)
+
             if isinstance(verify_recovery, UnauthorizedError):
                 return verify_recovery
             await crud_user.update(session, id=verify_recovery.user_id, obj_in={"hashed_password": get_password_hash(data.new_password)})
