@@ -36,16 +36,16 @@ class  VerifyService:
                 return NotFoundError("User not found")
         
             verify_active = await crud_verify.get(session, return_columns=["id","exp_active"],user_id=user.id)
-            if verify_active is not None and verify_active.exp_active > datetime.utcnow():
+            if verify_active is not None and verify_active.exp_active is not None and verify_active.exp_active > datetime.utcnow():
                 return SuccessResponse("Already send code. Please check your email to verify your account.")
             
             new_code_active, new_exp_active = create_verify_code()
             new_verify_active = ActivateCodeInDB(code_active=new_code_active,exp_active=new_exp_active, user_id=user.id)
 
-            if verify_active is not None and verify_active.exp_active < datetime.utcnow():
+            if verify_active:
                 await crud_verify.update(session, id=verify_active.id, obj_in=new_verify_active.dict(exclude_unset=True, exclude_none=True))
             else:
-                await crud_verify.create(session , obj_in=new_verify_active)
+                await crud_verify.create(session, obj_in=new_verify_active)
             info = InfoEmailSend(email=data.email,name=user.full_name, verification_code=new_code_active)
             html_content = await render_email_template("verify_code.html",**info.dict())
             response = await send_email(
@@ -64,18 +64,17 @@ class  VerifyService:
                 return NotFoundError("User not found")
         
             verify_recovery = await crud_verify.get(session, return_columns = ["id","exp_recovery"],user_id=user.id)
-            print("hello",verify_recovery )
-            if verify_recovery.exp_recovery is not None and verify_recovery.exp_recovery > datetime.utcnow():
+           
+            if  verify_recovery is not None  and verify_recovery.exp_recovery is not None and verify_recovery.exp_recovery > datetime.utcnow():
                 return SuccessResponse("Already send code. Please check your email to verify your account.")
             
             new_code_recovery, new_exp_recovery = create_verify_code()
             new_verify_recovery = RecoveryCodeInDB(code_recovery=new_code_recovery,exp_recovery=new_exp_recovery, user_id=user.id)
-            print("hello",new_verify_recovery)
-            if verify_recovery.exp_recovery is not None and verify_recovery.exp_recovery < datetime.utcnow():
-
+           
+            if verify_recovery:
                 await crud_verify.update(session, id=verify_recovery.id, obj_in=new_verify_recovery.dict(exclude_unset=True, exclude_none=True))
             else:
-                await crud_verify.update(session , id=verify_recovery.id, obj_in=new_verify_recovery.dict(exclude_unset=True, exclude_none=True))
+                await crud_verify.create(session , obj_in=new_verify_recovery)
             info = InfoEmailSend(email=data.email,name=user.full_name, verification_code=new_code_recovery)
             html_content = await render_email_template("verify_code.html",**info.dict())
             response = await send_email(

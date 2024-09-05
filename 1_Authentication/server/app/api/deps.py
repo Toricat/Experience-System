@@ -68,7 +68,7 @@ def RoleChecker(allowed_roles: list[str]):
         current_user: User = Depends(get_current_user)
     ) -> User:
         if current_user.role not in allowed_roles:
-            raise HTTPException(status_code=403,detail="Not enough permissions",)
+            raise HTTPException(status_code=403,detail={"message": f"Not enough permissions", "code": 403},)
         return current_user
     return role_checker
 
@@ -83,14 +83,14 @@ async def check_permissions(
         return {}
 
     if id and id != current_user.id:
-        raise HTTPException(status_code=403, detail="You are not allowed to perform this action")
+        raise HTTPException(status_code=403, detail={"message": "You are not allowed to perform this action", "code": 403})
 
     kwargs = {}
 
     if action == "create":
         if obj_in:
             if obj_in.get(owner_field) and obj_in[owner_field] != current_user.id:
-                raise HTTPException(status_code=403, detail="You are not allowed to perform this action")
+                raise HTTPException(status_code=403, detail={"message": "You are not allowed to perform this action", "code": 403})
     if action in ["get", "get_multi", "update", "delete"]:
         if id is None:
             kwargs[owner_field] = current_user.id

@@ -28,16 +28,24 @@ class Settings(BaseSettings):
     API_VERSION: str = "/api/v1"
     SECRET_KEY: str = secrets.token_urlsafe(32)
     ALGORITHM: str = "HS256"
-    # 60 minutes * 24 hours * 8 days = 1 days
+    # 60 minutes * 24 hours * 1 days = 1 days
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 1
-    # 60 minutes * 24 hours * 8 days = 814days
+    # 60 minutes * 24 hours * 14 days = 14days
     REFRESH_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 14
     # 5 minutes
     VERIFY_CODE_EXPIRE_MINUTES: int = 5
     
     DOMAIN: str = "localhost"
     DOMAIN_HOST: int = 8000
-    ENVIRONMENT: Literal["local", "staging", "production"] = "local"
+    ENVIRONMENT: Literal["local", "development", "production"] = "local"
+    RELOAD: bool = True
+
+    @model_validator(mode="after")
+    def adjust_reload_based_on_env(self) -> Self:
+        if self.ENVIRONMENT == "production":
+            self.RELOAD = False
+        return self
+    
 
     @computed_field(return_type=str) 
     def server_host(self) -> str:
@@ -84,7 +92,7 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def _set_default_emails_from(self) -> Self:
         if not self.EMAILS_FROM_NAME:
-            self.EMAILS_FROM_NAME = self.PROJECT_NAME
+            self.EMAILS_FROM_NAME = self.APP_NAME
         return self
 
     @computed_field(return_type=bool) 

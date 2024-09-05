@@ -20,7 +20,6 @@ class ItemService:
 
     @handle_error
     async def get_multi_items_service(self,session, offset: int, limit: int,kwargs):
- 
         result= await crud_item.get_multi(session, offset=offset, limit=limit,**kwargs )
         return result
     

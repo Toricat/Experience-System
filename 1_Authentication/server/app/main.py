@@ -52,6 +52,6 @@ if __name__ == "__main__":
     import uvicorn
     logger.info("Starting server...")
     logger.info(f"Server run at: http://{settings.DOMAIN}:{settings.DOMAIN_HOST}...")
-    uvicorn.run("main:app", host=settings.DOMAIN, port=settings.DOMAIN_HOST, reload=True)
+    uvicorn.run("main:app", host=settings.DOMAIN, port=settings.DOMAIN_HOST, reload=settings.RELOAD)
 
 

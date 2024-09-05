@@ -33,6 +33,7 @@ async def send_email(
     html_content: str = None,
     attachments: list[str] = []
 ) -> str:
+
     if not settings.emails_enabled:
         return "Email settings not enabled."
 
