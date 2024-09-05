@@ -37,6 +37,8 @@ class Settings(BaseSettings):
     
     DOMAIN: str = "localhost"
     DOMAIN_HOST: int = 8000
+    DOMAIN_FRONTEND: str = "localhost"
+    DOMAIN_HOST_FRONTEND: int = 3000
     ENVIRONMENT: Literal["local", "development", "production"] = "local"
     RELOAD: bool = True
 
@@ -47,11 +49,17 @@ class Settings(BaseSettings):
         return self
     
 
-    @computed_field(return_type=str) 
+    @computed_field(return_type=str)  # type: ignore[prop-decorator]
     def server_host(self) -> str:
         if self.ENVIRONMENT == "local":
-            return f"http://{self.DOMAIN}"
-        return f"https://{self.DOMAIN}"
+            return f"http://{self.DOMAIN}:{self.DOMAIN_HOST}"
+        return f"https://{self.DOMAIN}:{self.DOMAIN_HOST}"
+    
+    @computed_field(return_type=str)  # type: ignore[prop-decorator]
+    def frontend_host(self) -> str:
+        if self.ENVIRONMENT == "local":
+            return f"http://{self.DOMAIN_FRONTEND}:{self.DOMAIN_HOST_FRONTEND}"
+        return f"https://{self.DOMAIN_HOST_FRONTEND}:{self.DOMAIN_HOST_FRONTEND}"
 
     BACKEND_CORS_ORIGINS: Annotated[
         list[AnyUrl] | str, BeforeValidator(parse_cors)
@@ -65,7 +73,7 @@ class Settings(BaseSettings):
     DB: str = ""
     DB_SCHEMA: str 
 
-    @computed_field(return_type=str)  
+    @computed_field(return_type=str)  # type: ignore[prop-decorator]
     def SQLALCHEMY_DATABASE_URI(self) -> str:
         return MultiHostUrl.build(
             scheme=self.DB_SCHEMA,
@@ -95,9 +103,14 @@ class Settings(BaseSettings):
             self.EMAILS_FROM_NAME = self.APP_NAME
         return self
 
-    @computed_field(return_type=bool) 
+    @computed_field(return_type=bool) # type: ignore[prop-decorator]
     def emails_enabled(self) -> bool:
         return bool(self.SMTP_HOST and self.EMAILS_FROM_EMAIL)
+    
+    GOOGLE_CLIENT_ID:str ="your_google_client_id"
+    GOOGLE_CLIENT_SECRET:str ="your_google_client_secret"
+    GITHUB_CLIENT_ID:str ="your_github_client_id"
+    GITHUB_CLIENT_SECRET:str ="your_github_client_secret"
 
     def _check_default_secret(self, var_name: str, value: str, default_value: str | None) -> None:
         if value == default_value:

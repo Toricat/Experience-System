@@ -13,16 +13,14 @@ from .common.exceptions import (
 from .common.handle import handle_error
 from .common.utils import send_email,render_email_template
 
-from core.security import create_access_token, create_refresh_token, create_verify_code, get_password_hash, is_valid_password
+from core.security import  create_verify_code, get_password_hash
 
 from crud.users import crud_user
-from crud.tokens import crud_token
 from crud.verifies import crud_verify
 
-from schemas.tokens import TokenInDB,TokenLogin
-from schemas.users import UserInDB, UserCreate,UserBase, UserActivate
+from schemas.users import  UserActivate
 from schemas.verifies import ActivateCodeInDB,RecoveryCodeInDB
-from schemas.authetications import  TokenRefresh,ChangePassword, VerifyCodeComfirm,VerifyEmailSend,VerifyCodeChangePassword, Login 
+from schemas.authetications import  VerifyCodeComfirm,VerifyEmailSend,VerifyCodeChangePassword
 from schemas.utils import InfoEmailSend
 
 
@@ -112,7 +110,7 @@ class  VerifyService:
             if isinstance(verify_active, UnauthorizedError):
                 return verify_active
             obj_in = UserActivate(is_active=True)
-            await crud_user.update(session, id=verify_active.id, email=data.email,obj_in=obj_in)
+            await crud_user.update(session, id=verify_active.user_id, email=data.email, obj_in=obj_in)
             return SuccessResponse("User Activated")
 
         @handle_error

@@ -1,3 +1,4 @@
+from datetime import datetime
 from .common.exceptions import (
     SuccessResponse,
     NotFoundError, 
@@ -31,6 +32,7 @@ class UserService:
         obj_in = UserInDB(
             **user_in.dict(),
             hashed_password=get_password_hash(user_in.password),
+            created_at=datetime.utcnow(),    
         )
         result = await crud_user.create(session, obj_in,**kwargs)
         return result

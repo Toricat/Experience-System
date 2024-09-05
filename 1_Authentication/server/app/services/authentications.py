@@ -13,17 +13,46 @@ from .common.handle import handle_error
 from .common.utils import send_email,render_email_template
 
 from core.security import create_access_token, create_refresh_token, create_verify_code, get_password_hash, is_valid_password
+from core.config import settings
 
 from crud.users import crud_user
 from crud.tokens import crud_token
 from crud.verifies import crud_verify
 
 from schemas.tokens import TokenInDB,TokenLogin
-from schemas.users import UserInDB, UserCreate,UserBase, UserActivate
+from schemas.users import UserInDB, UserCreate,UserBase,UserUpdate
 from schemas.verifies import ActivateCodeInDB
-from schemas.authetications import  TokenRefresh,ChangePassword, VerifyCodeComfirm,VerifyEmailSend,VerifyCodeChangePassword, Login 
+from schemas.authetications import  TokenRefresh,ChangePassword,Login 
 from schemas.utils import InfoEmailSend
 
+from authlib.integrations.starlette_client import OAuth
+
+oauth = OAuth()
+oauth.register(
+    name='google',
+    client_id=settings.GOOGLE_CLIENT_ID,
+    client_secret=settings.GOOGLE_CLIENT_SECRET,
+    authorize_url="https://accounts.google.com/o/oauth2/auth",
+    authorize_params=None,
+    access_token_url="https://accounts.google.com/o/oauth2/token",
+    access_token_params=None,
+    refresh_token_url=None,
+    redirect_uri=f"{settings.frontend_host}/auth/google/callback",
+    userinfo_endpoint="https://www.googleapis.com/oauth2/v1/userinfo"
+)
+
+oauth.register(
+    name='github',
+    client_id=settings.GITHUB_CLIENT_ID,
+    client_secret=settings.GITHUB_CLIENT_SECRET,
+    authorize_url="https://github.com/login/oauth/authorize",
+    authorize_params=None,
+    access_token_url="https://github.com/login/oauth/access_token",
+    access_token_params=None,
+    refresh_token_url=None,
+    redirect_uri=f"{settings.frontend_host}/auth/github/callback",
+    userinfo_endpoint="https://api.github.com/user"
+)
 
 class AuthService:
     def __init__(self):
@@ -47,6 +76,7 @@ class AuthService:
             obj_in = TokenInDB(refresh_token=refresh_token, user_id=user.id, exp=expire)
             await crud_token.create(session, obj_in=obj_in)
 
+        await crud_user.update(session,email=data.username,obj_in=UserUpdate(last_login=datetime.utcnow()))
         return TokenLogin( token_type="bearer", refresh_token=refresh_token, access_token=access_token)    
     @handle_error
     async def register_service(self,session,  data: UserCreate):
@@ -58,7 +88,8 @@ class AuthService:
             image=data.image, 
             role="user", 
             account_type="local", 
-            is_active=False
+            is_active=False,
+            created_at=datetime.utcnow(),    
         )
         user = await crud_user.create(session, obj_in=new_user)
         code_active, exp_active = create_verify_code()
@@ -98,6 +129,49 @@ class AuthService:
         await crud_user.update(session, id=current_user.id, obj_in={"hashed_password": get_password_hash(data.new_password)})
 
         return SuccessResponse("Password changed successfully")
+    
+
+    @handle_error
+    async def oauth_login_service(self, provider: str):
+        if provider not in ["google", "github"]:
+            return BadRequestError("Unsupported provider")
+        
+        redirect_uri = f"{settings.BACKEND_URL}/auth/callback/{provider}"
+        return await oauth.create_client(provider).authorize_redirect(redirect_uri)
+
+    @handle_error
+    async def oauth_callback_service(self, provider: str, session, token: dict):
+        user_info = await oauth.create_client(provider).userinfo(token=token)
+        email = user_info.get('email')
+        
+        user = await crud_user.get(session, email=email)
+        if user:
+            await crud_user.update(session, id=user.id)
+        else:
+            new_user = UserInDB(
+                email=email,
+                full_name=user_info.get('name'),
+                id_provider=user_info.get('id'),
+                image=user_info.get('picture'),
+                account_type=provider,
+                is_active=True,
+                created_at=datetime.utcnow(),
+                last_login=datetime.utcnow(),
+                hashed_password=""  
+            )
+            user = await crud_user.create(session, obj_in=new_user)
+
+        existing_token = await crud_token.get(session,user_id=user.id)
+        access_token = create_access_token(user)
+
+        if existing_token and existing_token.exp > datetime.utcnow():
+            refresh_token = existing_token.refresh_token
+        else:
+            refresh_token, expire = create_refresh_token()
+            obj_in = TokenInDB(refresh_token=refresh_token, user_id=user.id, exp=expire)
+            await crud_token.create(session, obj_in=obj_in)
+
+        return TokenLogin(token_type="bearer", refresh_token=refresh_token, access_token=access_token)
 
    
        

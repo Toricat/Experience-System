@@ -13,14 +13,28 @@ class UserCreate(UserBase):
     email: EmailStr
     password: str = Field(..., min_length=6)
 
+class UserOAuth2Create(BaseModel):
+    id_provider: Optional[str]
+    full_name: Optional[str]
+    email: EmailStr
+    image: Optional[str]
+    account_type: str
+    is_active: bool = True
+    created_at: datetime
+    last_login: datetime
+
 class UserUpdate(UserBase):
     password: Optional[str] = Field(None, min_length=6)
+    last_login:  Optional[datetime] = None
 
 class UserInDB(UserBase):
     id: Optional[int] = None
+    id_provider: Optional[str] = None
     hashed_password: str
     account_type: Optional[str] = "local"
     is_active: Optional[bool] = False
+    created_at: Optional[datetime] = None
+    last_login: Optional[datetime] = None
 
     class Config:
         from_attributes=True

@@ -12,6 +12,8 @@ from core.config import settings
 
 from logger import logger  
 
+logger.info("Environment: " + settings.ENVIRONMENT) 
+
 def custom_generate_unique_id(route: APIRoute) -> str:
     return f"{route.tags[0]}-{route.name}"
 
@@ -22,7 +24,6 @@ def custom_generate_unique_id(route: APIRoute) -> str:
 
 # async def close_redis_pool():
 #     redis.pool.close()
-
 
 def create_application() -> FastAPI:
     application = FastAPI(title=settings.APP_NAME,
@@ -51,7 +52,7 @@ app = create_application()
 if __name__ == "__main__":
     import uvicorn
     logger.info("Starting server...")
-    logger.info(f"Server run at: http://{settings.DOMAIN}:{settings.DOMAIN_HOST}...")
+    logger.info(f"Server run at: {settings.server_host}")
     uvicorn.run("main:app", host=settings.DOMAIN, port=settings.DOMAIN_HOST, reload=settings.RELOAD)
 
 
