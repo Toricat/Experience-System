@@ -5,6 +5,6 @@ app.egg-info
 .coverage
 htmlcov
 .cache
-.venv
-.env
+# .venv
+# .env
 *logs
