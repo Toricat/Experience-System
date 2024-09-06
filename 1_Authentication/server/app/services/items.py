@@ -28,7 +28,6 @@ class ItemService:
         obj_in = ItemInDB(
             **item_in.dict()
             )
-        print(obj_in)
         result= await crud_item.create(session, obj_in = obj_in,**kwargs )
         return result
 
@@ -37,8 +36,6 @@ class ItemService:
         obj_in = ItemUpdate(
             **item_in.dict(exclude_unset=True, exclude_none=True)
             )
-        print(obj_in)
-        print(kwargs)
         result =await crud_item.update(session,id=item_id, obj_in = obj_in,**kwargs )
         return result
     @handle_error

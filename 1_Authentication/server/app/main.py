@@ -1,9 +1,15 @@
+import time
+
 from arq import create_pool
 from arq.connections import RedisSettings
-
+from fastapi.exceptions import HTTPException
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
+
 from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
 import logging
 
 from api.router import api_router
@@ -14,6 +20,17 @@ from logger import logger
 
 logger.info("Environment: " + settings.ENVIRONMENT) 
 
+class LoggingMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        start_time = time.time()
+
+        response = await call_next(request)
+        process_time = time.time() - start_time
+        logger.info(f"Request: {request.method} {request.url} - Processed in {process_time:.2f}s - Status: {response.status_code}")
+        return response
+
+        
+    
 def custom_generate_unique_id(route: APIRoute) -> str:
     return f"{route.tags[0]}-{route.name}"
 
@@ -31,6 +48,9 @@ def create_application() -> FastAPI:
     logger.info("Starting application...") 
     # application.add_event_handler("startup", create_redis_pool)
     # application.add_event_handler("shutdown", close_redis_pool)
+
+    application.add_middleware(LoggingMiddleware)
+
     if settings.BACKEND_CORS_ORIGINS:
         application.add_middleware(
             CORSMiddleware,
@@ -41,13 +61,19 @@ def create_application() -> FastAPI:
             allow_methods=["*"],
             allow_headers=["*"],
         )
+
+    application.add_middleware(
+        SessionMiddleware,
+        secret_key=settings.SECRET_KEY,
+        session_cookie="session", 
+        same_site="lax"
+    )
     application.include_router(api_router , prefix= settings.API_VERSION)
     logger.info("Application setup complete.")
 
     return application
 
 app = create_application()
-
 
 if __name__ == "__main__":
     import uvicorn

@@ -31,7 +31,15 @@ loggers:
     level: WARNING
     handlers: [console, file]
     propagate: False
+  multipart.multipart:
+    level: WARNING
+    handlers: [console, file]
+    propagate: False 
+  aiomysql:
+    level: WARNING
+    handlers: [console, file]
+    propagate: False
 
 root:
-  level: INFO
+  level: DEBUG
   handlers: [console, file]

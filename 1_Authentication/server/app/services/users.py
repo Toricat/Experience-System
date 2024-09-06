@@ -32,7 +32,7 @@ class UserService:
         obj_in = UserInDB(
             **user_in.dict(),
             hashed_password=get_password_hash(user_in.password),
-            created_at=datetime.utcnow(),    
+            created_at=datetime.now(),    
         )
         result = await crud_user.create(session, obj_in,**kwargs)
         return result
@@ -49,7 +49,6 @@ class UserService:
 
     @handle_error
     async def delete_user_service(self, session, user_id: int,kwargs):
-        print(kwargs)
         result= await crud_user.delete(session, id=user_id,**kwargs )
         if not result:
             return NotFoundError("Resource not found or does not exist.")

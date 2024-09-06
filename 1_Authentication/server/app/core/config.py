@@ -64,7 +64,6 @@ class Settings(BaseSettings):
     BACKEND_CORS_ORIGINS: Annotated[
         list[AnyUrl] | str, BeforeValidator(parse_cors)
     ] = []
-
     APP_NAME: str
     DB_HOST: str
     DB_PORT: int = 5432

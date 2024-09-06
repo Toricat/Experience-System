@@ -1,7 +1,7 @@
 """add admin user
 
 Revision ID: bffd681d6b6b
-Revises: 283e1b3dc4d4
+Revises: 7262b75ef9c7
 Create Date: 2024-08-30 12:15:05.930912
 
 """
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = 'bffd681d6b6b'
-down_revision: Union[str, None] = '283e1b3dc4d4'
+down_revision: Union[str, None] = '7262b75ef9c7'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

@@ -34,7 +34,7 @@ class  VerifyService:
                 return NotFoundError("User not found")
         
             verify_active = await crud_verify.get(session, return_columns=["id","exp_active"],user_id=user.id)
-            if verify_active is not None and verify_active.exp_active is not None and verify_active.exp_active > datetime.utcnow():
+            if verify_active is not None and verify_active.exp_active is not None and verify_active.exp_active > datetime.now():
                 return SuccessResponse("Already send code. Please check your email to verify your account.")
             
             new_code_active, new_exp_active = create_verify_code()
@@ -63,7 +63,7 @@ class  VerifyService:
         
             verify_recovery = await crud_verify.get(session, return_columns = ["id","exp_recovery"],user_id=user.id)
            
-            if  verify_recovery is not None  and verify_recovery.exp_recovery is not None and verify_recovery.exp_recovery > datetime.utcnow():
+            if  verify_recovery is not None  and verify_recovery.exp_recovery is not None and verify_recovery.exp_recovery > datetime.now():
                 return SuccessResponse("Already send code. Please check your email to verify your account.")
             
             new_code_recovery, new_exp_recovery = create_verify_code()
@@ -85,40 +85,46 @@ class  VerifyService:
         
         @handle_error
         async def confirm_active_code(self, session, data: VerifyCodeComfirm):
-            verify_active = await crud_verify.get(session,return_columns=["exp_active","user_id"], code_active=data.verify_code)
+            verify_active = await crud_verify.get(session,return_columns=["exp_active","user_id","used_recovery"], code_active=data.verify_code)
             if verify_active is None:
                 return UnauthorizedError("Invalid verify code")
-            if verify_active.exp_active < datetime.utcnow():
+            if verify_active.used_recovery:
+                return ConflictError("Already used active code")
+            if verify_active.exp_active < datetime.now():
                 return UnauthorizedError("Expired verify code")
-            verify_user = await crud_user.get(session,return_columns=["email","id"], email=data.email)
+            verify_user = await crud_user.get(session,return_columns=["email","id","is_active"], email=data.email)
             if verify_user is None:
                 return UnauthorizedError("Invalid email")
             if verify_user.id != verify_active.user_id:
                 return UnauthorizedError("Invalid email")
+            if verify_user.is_active:
+                return ConflictError("User already activated")
             return  verify_active
         
         @handle_error
         async def confirm_active_code_service(self, session, data: VerifyCodeComfirm):
             verify_active = await self.confirm_active_code(session,data)
-            if isinstance(verify_active, UnauthorizedError):
+            if isinstance(verify_active, (UnauthorizedError, ConflictError)):
                 return verify_active
             return SuccessResponse("Active code confirmed")
         
         @handle_error
         async def confirm_active_code_account_service(self, session, data: VerifyCodeComfirm):
             verify_active = await self.confirm_active_code(session, data=data)
-            if isinstance(verify_active, UnauthorizedError):
+            if isinstance(verify_active, (UnauthorizedError, ConflictError)):
                 return verify_active
-            obj_in = UserActivate(is_active=True)
-            await crud_user.update(session, id=verify_active.user_id, email=data.email, obj_in=obj_in)
+            await crud_user.update(session, id=verify_active.user_id, email=data.email, obj_in={"is_active":True})
+            await crud_verify.update(session, user_id=verify_active.user_id, obj_in={"used_active":True})
             return SuccessResponse("User Activated")
 
         @handle_error
         async def confirm_recovery_code(self, session, data: VerifyCodeComfirm):
-            verify_recovery = await crud_verify.get(session,return_columns=["exp_recovery","user_id"], code_recovery=data.verify_code)
+            verify_recovery = await crud_verify.get(session,return_columns=["exp_recovery","user_id","used_recovery"], code_recovery=data.verify_code)
             if verify_recovery is None:
                 return UnauthorizedError("Invalid recovery code")
-            if verify_recovery.exp_recovery < datetime.utcnow():
+            if verify_recovery.used_recovery:
+                return ConflictError("Already used recovery code")
+            if verify_recovery.exp_recovery < datetime.now():
                 return UnauthorizedError("Expired recoveryy code")
             verify_user = await crud_user.get(session,return_columns=["email","id"], email=data.email)
             if verify_user is None:
@@ -131,7 +137,7 @@ class  VerifyService:
         async def confirm_recovery_code_service(self, session, data: VerifyCodeComfirm):
             verify_recovery = await self.confirm_recovery_code(session,data)
 
-            if isinstance( verify_recovery, UnauthorizedError):
+            if isinstance( verify_recovery, (UnauthorizedError, ConflictError)):
                 return  verify_recovery
             return SuccessResponse("Recovery code confirmed")
         
@@ -139,8 +145,9 @@ class  VerifyService:
         async def confirm_recovery_code_change_password_service(self, session, data: VerifyCodeChangePassword):
             verify_recovery = await self.confirm_recovery_code(session, data=data)
 
-            if isinstance(verify_recovery, UnauthorizedError):
+            if isinstance(verify_recovery,(UnauthorizedError, ConflictError)):
                 return verify_recovery
             await crud_user.update(session, id=verify_recovery.user_id, obj_in={"hashed_password": get_password_hash(data.new_password)})
+            await crud_verify.update(session, user_id=verify_recovery.user_id, obj_in={"used_recovery":True})
             return SuccessResponse("Password changed successfully")
             

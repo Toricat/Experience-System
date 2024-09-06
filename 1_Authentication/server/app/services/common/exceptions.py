@@ -10,10 +10,6 @@ class SuccessResponse(ServiceResponse):
     def __init__(self, message="Success", code=200):
         super().__init__(message, code)
 
-class BadRequestError(ServiceResponse):
-    def __init__(self, message="Bad Request", code=400):
-        super().__init__(message, code)
-
 class UnauthorizedError(ServiceResponse):
     def __init__(self, message="Unauthorized", code=401):
         super().__init__(message, code)
@@ -50,5 +46,8 @@ class DatabaseTimeoutError(ServiceResponse):
 
 class DatabaseConnectionError(ServiceResponse):
     def __init__(self, message="Database Connection Error", code=505):
+        super().__init__(message, code)
+class BadRequestError(ServiceResponse):
+    def __init__(self, message="Bad Request", code=500):
         super().__init__(message, code)
 
