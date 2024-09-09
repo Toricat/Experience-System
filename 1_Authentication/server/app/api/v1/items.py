@@ -24,7 +24,7 @@ async def get_multi_items(
     kwargs = await check_permissions(current_user, action="get_multi")
     result = await item_service.get_multi_items_service( session=session, offset=offset, limit=limit, kwargs=kwargs)
     
-    return handle_service_result(result)
+    return result
 
 @router.get("/{item_id}/", response_model=Item)
 async def get_item(
@@ -38,7 +38,7 @@ async def get_item(
     kwargs = await check_permissions(current_user, action="get")
     result = await item_service.get_item_service( session=session, item_id = item_id, kwargs=kwargs)
     
-    return handle_service_result(result)
+    return result
 
 @router.post("/", response_model=Item)
 async def create_item(
@@ -51,7 +51,7 @@ async def create_item(
     """
     kwargs = await check_permissions(current_user, action="create", obj_in=item_in.dict())
     result = await item_service.create_item_service( session=session, item_in=item_in ,kwargs=kwargs)
-    return handle_service_result(result)
+    return result
 
 
 @router.put("/{item_id}/", response_model=Item)
@@ -66,7 +66,7 @@ async def update_item(
     """
     kwargs = await check_permissions(current_user,action="update",obj_in=item_in.dict())
     result = await item_service.update_item_service(session=session,item_id=item_id, item_in=item_in,  kwargs=kwargs)
-    return handle_service_result(result)
+    return result
 
 @router.delete("/{item_id}/", response_model=Message)
 async def delete_item(
@@ -79,4 +79,4 @@ async def delete_item(
     """
     kwargs = await check_permissions(current_user, action="delete")
     result = await item_service.delete_item_service( session=session, item_id=item_id,  kwargs=kwargs)
-    return handle_service_result(result)
+    return result

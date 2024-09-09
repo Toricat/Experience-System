@@ -17,7 +17,9 @@ async def render_email_template(template_name: str, **kwargs) -> str:
     with open(template_path, "r", encoding="utf-8") as file:
         template_content = file.read()
         template = Template(template_content)
-        html_content = template.render(**kwargs,app_name=settings.APP_NAME,activate_url=f"{settings.FRONTEND_LINK}/auth/account-verify?token={kwargs['verification_code']}&email={kwargs['email']}")
+        html_content = template.render(**kwargs,
+                                       app_name=settings.APP_NAME,
+                                       activate_url=f"{settings.FRONTEND_LINK_LOGIN}/auth/account-verify?token={kwargs['verification_code']}&email={kwargs['email']}")
     
     print("Template content:", html_content)
     print("Kwargs:", kwargs)

@@ -1,9 +1,6 @@
 from pydantic import BaseModel
-class Detail(BaseModel):
-    message: str
-    code: int
 class Message(BaseModel):
-    detail: Detail
+    message: str
     class Config:
         from_attributes=True
 class InfoEmailSend(BaseModel):

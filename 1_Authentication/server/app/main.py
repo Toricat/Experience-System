@@ -1,36 +1,31 @@
 import time
+from typing import Awaitable, Callable
 
 from arq import create_pool
 from arq.connections import RedisSettings
-from fastapi.exceptions import HTTPException
-from fastapi import FastAPI
+from fastapi import FastAPI,Request, Response
 from fastapi.routing import APIRoute
 
-from starlette.middleware.cors import CORSMiddleware
-from starlette.middleware.sessions import SessionMiddleware
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import JSONResponse
 import logging
 
 from api.router import api_router
 from core import redis
 from core.config import settings
 
-from logger import logger  
+from utils.logger import logger
+from middlewares.error_handlers import  register_error_handlers
+from middlewares.middle_ware import register_middleware
 
-logger.info("Environment: " + settings.ENVIRONMENT) 
 
-class LoggingMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request, call_next):
-        start_time = time.time()
+description = """
+A REST API for a book review web service.
 
-        response = await call_next(request)
-        process_time = time.time() - start_time
-        logger.info(f"Request: {request.method} {request.url} - Processed in {process_time:.2f}s - Status: {response.status_code}")
-        return response
-
-        
-    
+This REST API is able to;
+- Create Read Update And delete books
+- Add reviews to books
+- Add tags to Books e.t.c.
+    """
+ 
 def custom_generate_unique_id(route: APIRoute) -> str:
     return f"{route.tags[0]}-{route.name}"
 
@@ -44,32 +39,28 @@ def custom_generate_unique_id(route: APIRoute) -> str:
 
 def create_application() -> FastAPI:
     application = FastAPI(title=settings.APP_NAME,
-                          generate_unique_id_function=custom_generate_unique_id)
-    logger.info("Starting application...") 
+                        generate_unique_id_function=custom_generate_unique_id,
+                        description=description,
+                        version=settings.APP_VERSION,
+                        license_info={"name": "MIT License", "url": "https://opensource.org/license/mit"},
+                        contact={
+                            "name": "Ssali Jonathan",
+                            "url": "https://github.com/jod35",
+                            "email": "ssalijonathank@gmail.com",
+                        },
+                        terms_of_service="httpS://example.com/tos",
+                        openapi_url=f"{settings.API_VERSION}/openapi.json",
+                        docs_url=f"{settings.API_VERSION}/docs",
+                        redoc_url=f"{settings.API_VERSION}/redoc"
+                        )
+
+    register_error_handlers(application)
+    register_middleware(application)
+    
     # application.add_event_handler("startup", create_redis_pool)
     # application.add_event_handler("shutdown", close_redis_pool)
 
-    application.add_middleware(LoggingMiddleware)
-
-    if settings.BACKEND_CORS_ORIGINS:
-        application.add_middleware(
-            CORSMiddleware,
-            allow_origins=[
-                str(origin).strip("/") for origin in settings.BACKEND_CORS_ORIGINS
-            ],
-            allow_credentials=True,
-            allow_methods=["*"],
-            allow_headers=["*"],
-        )
-
-    application.add_middleware(
-        SessionMiddleware,
-        secret_key=settings.SECRET_KEY,
-        session_cookie="session", 
-        same_site="lax"
-    )
     application.include_router(api_router , prefix= settings.API_VERSION)
-    logger.info("Application setup complete.")
 
     return application
 
@@ -77,6 +68,7 @@ app = create_application()
 
 if __name__ == "__main__":
     import uvicorn
+    logger.info("Environment: " + settings.ENVIRONMENT) 
     logger.info("Starting server...")
     logger.info(f"Server run at: {settings.server_host}")
     uvicorn.run("main:app", host=settings.DOMAIN, port=settings.DOMAIN_HOST, reload=settings.RELOAD)

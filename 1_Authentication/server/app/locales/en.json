@@ -1,0 +1,17 @@
+{
+    "user_already_exists": "User with this email already exists",
+    "user_not_found": "User not found",
+    "user_account_locked": "User account is locked",
+    "user_permission_denied": "Permission denied for this user",
+    "invalid_access_token": "Invalid or expired access token",
+    "invalid_refresh_token": "Invalid or expired refresh token",
+    "token_expired": "The token has expired",
+    "token_revoked": "Token has been revoked",
+    "invalid_verify_code": "Invalid or expired verification code",
+    "verify_code_not_found": "Verification code not found",
+    "verify_code_already_used": "Verification code has already been used",
+    "item_not_found": "Item not found",
+    "item_already_exists": "Item already exists",
+    "item_out_of_stock": "Item is out of stock",
+    "item_permission_denied": "Permission denied for this item"
+}

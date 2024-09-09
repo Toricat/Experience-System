@@ -14,14 +14,15 @@ from core.security import ALGORITHM
 from schemas.users import User
 from schemas.tokens import AccessTokenPayload
 
-from crud.users import crud_user
+from services.users import UserService
 
+
+user_service = UserService()
 
 
 oauth2 = OAuth2PasswordBearer(
     tokenUrl="/api/v1/auth/login",
 )
-
 
 async def get_session():
     async with SessionLocal() as session:
@@ -29,6 +30,7 @@ async def get_session():
 
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
 TokenDep = Annotated[str, Depends(oauth2)]
+
 
 async def get_token_data(token: TokenDep) -> AccessTokenPayload:
     try:
@@ -49,7 +51,7 @@ async def get_current_user(
     # token: AccessTokenPayload = get_token_data()
     token: AccessTokenPayload = Depends(get_token_data)
 ):  
-    user = await crud_user.get(session, id=token.user_id)
+    user = await user_service.get_user_service(session, id=token.user_id)
     if user is None:
         raise HTTPException(status_code=404, detail="User not found", headers={"WWW-Authenticate": "Bearer"})
     return user
@@ -88,9 +90,9 @@ async def check_permissions(
     kwargs = {}
 
     if action == "create":
-        if obj_in:
-            if obj_in.get(owner_field) and obj_in[owner_field] != current_user.id:
-                raise HTTPException(status_code=403, detail={"message": "You are not allowed to perform this action", "code": 403})
+        if obj_in.get(owner_field) and obj_in[owner_field] != current_user.id:
+            raise HTTPException(status_code=403, detail={"message": "You are not allowed to perform this action", "code": 403})
+            
     if action in ["get", "get_multi", "update", "delete"]:
         if id is None:
             kwargs[owner_field] = current_user.id

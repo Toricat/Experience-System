@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 
-from api.deps import SessionDep, RoleChecker, check_permissions,handle_service_result
+from api.deps import SessionDep, RoleChecker, check_permissions
 
 from schemas.users import UserCreate, User, UserUpdate
 from schemas.utils import Message
@@ -19,7 +19,7 @@ async def read_users(
 ):  
     kwargs = await check_permissions(current_user, action="get_multi", owner_field="id")
     result = await user_service.get_users_service(session=session, offset=offset, limit=limit, kwargs=kwargs)
-    return  handle_service_result(result)
+    return  result
   
 
 @router.get("/{user_id}/", response_model=User)
@@ -30,7 +30,7 @@ async def get_user(
 ):
     kwargs = await check_permissions(current_user, action="get", owner_field="id", id=user_id)
     result = await user_service.get_user_service(session=session, user_id=user_id, kwargs=kwargs)
-    return  handle_service_result(result)
+    return  result
 
 
 @router.post("/", response_model=User)
@@ -41,7 +41,7 @@ async def create_user(
 ):
     kwargs = await check_permissions(current_user, action="create", obj_in=user_in.dict(), owner_field="id")
     result = await user_service.create_user_service(session=session, user_in=user_in, kwargs=kwargs)
-    return  handle_service_result(result)
+    return  result
 
 @router.put("/{user_id}/", response_model=User)
 async def update_user(
@@ -52,7 +52,7 @@ async def update_user(
 ):
     kwargs = await check_permissions(current_user, action="update", owner_field="id", id=user_id)
     result = await user_service.update_user_service(session=session, user_id=user_id, user_in=user_in, kwargs=kwargs)
-    return  handle_service_result(result)
+    return  result
 
 @router.delete("/{user_id}/", response_model=Message)
 async def delete_user(
@@ -64,4 +64,4 @@ async def delete_user(
     if user_id == current_user.id:
         raise HTTPException(status_code=400, detail="You can't delete yourself")
     result = await user_service.delete_user_service(session=session, user_id=user_id, kwargs=kwargs)
-    return  handle_service_result(result)
+    return  result

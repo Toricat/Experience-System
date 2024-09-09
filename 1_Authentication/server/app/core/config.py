@@ -17,7 +17,7 @@ from typing_extensions import Self
 def parse_cors(v: Any) -> list[str] | str:
     if isinstance(v, str) and not v.startswith("["):
         return [i.strip() for i in v.split(",")]
-    elif isinstance(v, list | str):
+    elif isinstance(v, (list, str)):
         return v
     raise ValueError(v)
 
@@ -25,6 +25,16 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env", env_ignore_empty=True, extra="ignore"
     )
+
+    APP_NAME: str
+    APP_VERSION: str = "1.0.0"
+    DOMAIN: str = "localhost"
+    DOMAIN_HOST: int = 8000
+    DOMAIN_FRONTEND: str = "localhost"
+    DOMAIN_HOST_FRONTEND: int = 3000
+    ENVIRONMENT: Literal["local", "development", "production"] = "local"
+    RELOAD: bool = True
+
     API_VERSION: str = "/api/v1"
     SECRET_KEY: str = secrets.token_urlsafe(32)
     ALGORITHM: str = "HS256"
@@ -34,13 +44,7 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 14
     # 5 minutes
     VERIFY_CODE_EXPIRE_MINUTES: int = 5
-    
-    DOMAIN: str = "localhost"
-    DOMAIN_HOST: int = 8000
-    DOMAIN_FRONTEND: str = "localhost"
-    DOMAIN_HOST_FRONTEND: int = 3000
-    ENVIRONMENT: Literal["local", "development", "production"] = "local"
-    RELOAD: bool = True
+
 
     @model_validator(mode="after")
     def adjust_reload_based_on_env(self) -> Self:
@@ -64,7 +68,10 @@ class Settings(BaseSettings):
     BACKEND_CORS_ORIGINS: Annotated[
         list[AnyUrl] | str, BeforeValidator(parse_cors)
     ] = []
-    APP_NAME: str
+    ALLOWED_HOSTS: Annotated[
+        list[str] | str, BeforeValidator(parse_cors)
+    ] = []
+
     DB_HOST: str
     DB_PORT: int = 5432
     DB_USER: str
@@ -95,7 +102,7 @@ class Settings(BaseSettings):
 
     EMAILS_FROM_EMAIL: str | None = None
     EMAILS_FROM_NAME: str | None = None
-    FRONTEND_LINK: HttpUrl = "http://localhost:3000"
+    FRONTEND_LINK_LOGIN: HttpUrl = "http://localhost:3000/login"
     @model_validator(mode="after")
     def _set_default_emails_from(self) -> Self:
         if not self.EMAILS_FROM_NAME:

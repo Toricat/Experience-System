@@ -1,29 +1,30 @@
 from datetime import datetime
-from .common.exceptions import (
-    NotFoundError, 
-    UnauthorizedError, 
-    ConflictError, 
-    ForbiddenError,
-    TooManyRequestsError,
-    SuccessResponse,
-    BadRequestError,
-    AttributeError,
-    )
-from .common.handle import handle_error
-from .common.utils import send_email,render_email_template
+from .common.utils import send_email, render_email_template
 
-from core.security import create_access_token, create_refresh_token, create_verify_code, get_password_hash, is_valid_password,create_state
+from core.security import create_access_token, create_refresh_token, create_verify_code, get_password_hash, is_valid_password, create_state
 from core.config import settings
 
-from crud.users import crud_user
-from crud.tokens import crud_token
-from crud.verifies import crud_verify
+from repositories.users import crud_user
+from repositories.tokens import crud_token
+from repositories.verifies import crud_verify
 
-from schemas.tokens import TokenInDB,TokenLogin
-from schemas.users import UserInDB, UserCreate,UserBase,UserUpdate
+from schemas.tokens import TokenInDB, TokenLogin
+from schemas.users import UserInDB, UserCreate, UserBase, UserUpdate
 from schemas.verifies import ActivateCodeInDB
-from schemas.authetications import  TokenRefresh,ChangePassword,Login 
+from schemas.auths import TokenRefresh, ChangePassword, Login
 from schemas.utils import InfoEmailSend
+
+from utils.error.auth import (
+    OAuthProviderNotSupportedError,
+    OAuthClientError,
+    OAuthStateMismatchError,
+    InvalidCredentialsError,
+    EmailSendFailureError,
+    EmailSendFailureError
+)
+
+from utils.error.user import UserAccountInactiveError
+from utils.error.token import RefreshTokenExpiredError
 
 from authlib.integrations.starlette_client import OAuth
 
@@ -31,12 +32,12 @@ class AuthService:
     def __init__(self):
         self.oauth = OAuth()
         self.oauth.register(
-        name='google',
-        client_id=settings.GOOGLE_CLIENT_ID,
-        client_secret=settings.GOOGLE_CLIENT_SECRET,
-        server_metadata_url='https://accounts.google.com/.well-known/openid-configuration', 
-        client_kwargs={"scope": "openid email profile"},
-        redirect_uri=f"{settings.server_host}/api/v1/auth/callback/google"
+            name='google',
+            client_id=settings.GOOGLE_CLIENT_ID,
+            client_secret=settings.GOOGLE_CLIENT_SECRET,
+            server_metadata_url='https://accounts.google.com/.well-known/openid-configuration', 
+            client_kwargs={"scope": "openid email profile"},
+            redirect_uri=f"{settings.server_host}/api/v1/auth/callback/google"
         )
         self.oauth.register(
             name='github',
@@ -48,14 +49,13 @@ class AuthService:
             userinfo_endpoint="https://api.github.com/user"
         )
 
-    @handle_error
-    async def oauth_login_service(self, request,provider: str):
+    async def oauth_login_service(self, request, provider: str):
         if provider not in ["google", "github"]:
-            return BadRequestError("Unsupported provider")
+            raise OAuthProviderNotSupportedError()  
 
         client = self.oauth.create_client(provider)
         if not client:
-            return BadRequestError("Unsupported provider")
+            raise OAuthClientError() 
     
         state = create_state()
         request.session['oauth_state'] = state
@@ -64,23 +64,21 @@ class AuthService:
 
         return await client.authorize_redirect(request, redirect_uri, state=state)
 
-    @handle_error
     async def oauth_callback_service(self, request, provider: str, session):
         state_in_request = request.query_params.get("state")
         state_in_session = request.session.get('oauth_state')
         if not state_in_request or state_in_request != state_in_session:
-            return BadRequestError("State mismatch error, possible CSRF attack detected")
+            raise OAuthStateMismatchError()  
         client = self.oauth.create_client(provider)
         if not client:
-            return BadRequestError("Failed to create OAuth client")
+            raise OAuthClientError()  
         
         token = await client.authorize_access_token(request)
-      
         user_info = await client.userinfo(token=token)
         email = user_info.get('email')
         user = await crud_user.get(session, email=email)
         if user:
-           await crud_user.update(session,email=email,obj_in=UserUpdate(last_login=datetime.now()))
+            await crud_user.update(session, email=email, obj_in=UserUpdate(last_login=datetime.now()))
         else:
             new_user = UserInDB(
                 email=email,
@@ -92,10 +90,9 @@ class AuthService:
                 last_login=datetime.now(),
                 hashed_password="" 
             )
-
             user = await crud_user.create(session, obj_in=new_user)
 
-        existing_token = await crud_token.get(session,user_id=user.id)
+        existing_token = await crud_token.get(session, user_id=user.id)
         access_token = create_access_token(user)
 
         if existing_token and existing_token.exp > datetime.now():
@@ -109,15 +106,18 @@ class AuthService:
                 await crud_token.create(session, obj_in=obj_in)
 
         return TokenLogin(token_type="bearer", refresh_token=refresh_token, access_token=access_token)
-    @handle_error
-    async def login_service(self,session,data: Login):
+    
+    async def login_service(self, session, data: Login):
         user = await crud_user.get(session, email=data.username)
-        if not user or  user.account_type != "local" or  not is_valid_password(data.password, user.hashed_password):
-            return UnauthorizedError("Incorrect email or password")
-        if not user.is_active:
-            return ForbiddenError("User is inactive")
 
-        existing_token = await crud_token.get(session,user_id=user.id)
+        if not user or user.account_type != "local" or not is_valid_password(data.password, user.hashed_password):
+            raise InvalidCredentialsError()  
+        
+        if not user.is_active:
+            raise UserAccountInactiveError()  
+
+        existing_token = await crud_token.get(session, user_id=user.id)
+
         access_token = create_access_token(user)
 
         if existing_token and existing_token.exp > datetime.now():
@@ -130,11 +130,13 @@ class AuthService:
             else:
                 await crud_token.create(session, obj_in=obj_in)
 
-        await crud_user.update(session,email=data.username,obj_in=UserUpdate(last_login=datetime.now()))
-        return TokenLogin( token_type="bearer", refresh_token=refresh_token, access_token=access_token)    
-    @handle_error
-    async def register_service(self,session,  data: UserCreate):
+        await crud_user.update(session, email=data.username, obj_in=UserUpdate(last_login=datetime.now()))
+
+        return TokenLogin(token_type="bearer", refresh_token=refresh_token, access_token=access_token)    
+    
+    async def register_service(self, session, data: UserCreate):
         hashed_password = get_password_hash(data.password)
+
         new_user = UserInDB(
             email=data.email, 
             full_name=data.full_name, 
@@ -147,45 +149,40 @@ class AuthService:
         )
         user = await crud_user.create(session, obj_in=new_user)
         code_active, exp_active = create_verify_code()
-        obj_in = ActivateCodeInDB(code_active=code_active,exp_active=exp_active, user_id=user.id)
+        obj_in = ActivateCodeInDB(code_active=code_active, exp_active=exp_active, user_id=user.id)
         await crud_verify.create(session, obj_in=obj_in)
 
-        info = InfoEmailSend(email=data.email,name=user.full_name, verification_code=code_active)
-        html_content = await render_email_template( "register_code.html",**info.dict())
+        info = InfoEmailSend(email=data.email, name=user.full_name, verification_code=code_active)
+        html_content = await render_email_template("register_code.html", **info.dict())
         response = await send_email(
             email_to=data.email,
             subject="Your Verification Code",
-            html_content=html_content)
+            html_content=html_content
+        )
         if not response:
-            return BadRequestError("Failed to send email")
-        return SuccessResponse("Successfully registered. Please check your email to verify your account.")
+            raise EmailSendFailureError()  
+
+        return {"message": "Registration successful, verification code sent to your email"}
             
 
-    @handle_error
-    async def refresh_token_service(self,session,  token_data: TokenRefresh):
+    async def refresh_token_service(self, session, token_data: TokenRefresh):
         result = await crud_token.get(session, refresh_token=token_data.refresh_token)
         if not result or result.exp < datetime.now() or result.user_id != token_data.user_id:
-            return UnauthorizedError("Invalid or expired refresh token")
+            raise RefreshTokenExpiredError()  
 
         user = await crud_user.get(session, id=token_data.user_id)
         if not user or not user.is_active:
-            return UnauthorizedError("Invalid user or user is inactive")
+            raise UserAccountInactiveError() 
 
         access_token = create_access_token(user)
         refresh_token = token_data.refresh_token
 
-        return TokenLogin( token_type="bearer", refresh_token=refresh_token, access_token=access_token)    
+        return TokenLogin(token_type="bearer", refresh_token=refresh_token, access_token=access_token)    
 
-    @handle_error
-    async def change_password_service(self,session,  data: ChangePassword, current_user: UserBase):
+    async def change_password_service(self, session, data: ChangePassword, current_user: UserBase):
         if not is_valid_password(data.current_password, current_user.password):
-            return UnauthorizedError("Incorrect current password")
+            raise InvalidCredentialsError()  
+
         await crud_user.update(session, id=current_user.id, obj_in={"hashed_password": get_password_hash(data.new_password)})
 
-        return SuccessResponse("Password changed successfully")
-    
-
-    
-
-   
-       
+        return {"message": "Password changed successfully"} 

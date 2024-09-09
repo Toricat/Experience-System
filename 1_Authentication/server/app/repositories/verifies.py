@@ -1,4 +1,4 @@
-from crud.base import CRUDBase
+from repositories.base import CRUDBase
 from models.verify import Verify
 from schemas.verifies import VerifyInDB, VerifyUpdate
 

@@ -1,4 +1,4 @@
-from crud.base import CRUDBase
+from repositories.base import CRUDBase
 from models.token import Token
 from schemas.tokens import TokenInDB, TokenUpdate
 

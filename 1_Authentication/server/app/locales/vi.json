@@ -1,0 +1,17 @@
+{
+    "user_already_exists": "Người dùng với email này đã tồn tại",
+    "user_not_found": "Không tìm thấy người dùng",
+    "user_account_locked": "Tài khoản người dùng đã bị khóa",
+    "user_permission_denied": "Người dùng không có quyền truy cập",
+    "invalid_access_token": "Access token không hợp lệ hoặc đã hết hạn",
+    "invalid_refresh_token": "Refresh token không hợp lệ hoặc đã hết hạn",
+    "token_expired": "Token đã hết hạn",
+    "token_revoked": "Token đã bị thu hồi",
+    "invalid_verify_code": "Mã xác minh không hợp lệ hoặc đã hết hạn",
+    "verify_code_not_found": "Không tìm thấy mã xác minh",
+    "verify_code_already_used": "Mã xác minh đã được sử dụng",
+    "item_not_found": "Không tìm thấy sản phẩm",
+    "item_already_exists": "Sản phẩm đã tồn tại",
+    "item_out_of_stock": "Sản phẩm đã hết hàng",
+    "item_permission_denied": "Không có quyền truy cập vào sản phẩm này"
+}
