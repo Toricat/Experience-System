@@ -62,11 +62,9 @@ class VerifyService:
         Send recovery code to user's email. If code already sent and not expired,
         return a message indicating the code has already been sent.
         """
-        user = await crud_user.get(session,return_columns=["id", "full_name", "is_active"], email=data.email)
+        user = await crud_user.get(session,return_columns=["id", "full_name"], email=data.email)
         if user is None:
             raise UserNotFoundError()
-        if user.is_active is False:
-            raise UserAccountInactiveError()
 
         verify_recovery = await crud_verify.get(session, return_columns=["id", "exp_recovery"], user_id=user.id)
         if verify_recovery and verify_recovery.exp_recovery and verify_recovery.exp_recovery > datetime.now():

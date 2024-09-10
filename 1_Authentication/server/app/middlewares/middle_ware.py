@@ -25,10 +25,8 @@ def register_middleware(app: FastAPI):
         status_code = response.status_code
 
         processing_time = time.time() - start_time
-
-        message = f"From:{request.client.host}:{request.client.port} - To: {request.url} - Status: {status_code} - Completed after {processing_time:.2f}s"
-
         if status_code < 400:
+            message = f"Success - From: {request.client.host}:{request.client.port} - To: {request.url} - Status: {status_code} - Time: {processing_time:.2f}s"
             logger.info(message)
 
         return response

@@ -51,7 +51,7 @@ async def get_current_user(
     # token: AccessTokenPayload = get_token_data()
     token: AccessTokenPayload = Depends(get_token_data)
 ):  
-    user = await user_service.get_user_service(session, id=token.user_id)
+    user = await user_service.get_user_service(session, user_id=token.user_id,kwargs={})
     if user is None:
         raise HTTPException(status_code=404, detail="User not found", headers={"WWW-Authenticate": "Bearer"})
     return user

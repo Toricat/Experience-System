@@ -7,16 +7,16 @@ class ItemService:
     def __init__(self):
         pass
     
-    async def get_item_service(self,session, item_id: int,kwargs):
+    async def get_item_service(self,session, item_id: int,**kwargs):
         return await crud_item.get(session, id=item_id, **kwargs)
 
     
-    async def get_multi_items_service(self,session, offset: int, limit: int,kwargs):
+    async def get_multi_items_service(self,session, offset: int, limit: int,**kwargs):
         result= await crud_item.get_multi(session, offset=offset, limit=limit,**kwargs )
         return result
     
     
-    async def create_item_service(self,  session, item_in: ItemCreate,kwargs):
+    async def create_item_service(self,  session, item_in: ItemCreate,**kwargs):
         obj_in = ItemInDB(
             **item_in.dict()
             )
@@ -24,14 +24,14 @@ class ItemService:
         return result
 
     
-    async def update_item_service(self, session, item_id: int, item_in: ItemUpdate,kwargs):
+    async def update_item_service(self, session, item_id: int, item_in: ItemUpdate,**kwargs):
         obj_in = ItemUpdate(
             **item_in.dict(exclude_unset=True, exclude_none=True)
             )
         result =await crud_item.update(session,id=item_id, obj_in = obj_in,**kwargs )
         return result
     
-    async def delete_item_service(self, session, item_id: int,kwargs):
+    async def delete_item_service(self, session, item_id: int,**kwargs):
         result = await crud_item.delete(session, id=item_id,**kwargs )
         if not result:
             return ItemNotFoundError()

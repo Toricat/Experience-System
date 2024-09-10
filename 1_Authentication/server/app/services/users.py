@@ -11,20 +11,20 @@ class UserService:
         result =  await crud_user.get_multi(session, offset=offset, limit=limit,**kwargs )
         return  result 
 
-    async def get_user_service(self, session, user_id: int,kwargs):
+    async def get_user_service(self, session, user_id: int, kwargs):
         result = await crud_user.get(session, id=user_id,**kwargs )
         return  result
     
-    async def create_user_service(self, session, user_in: UserCreate,kwargs):
+    async def create_user_service(self, session, user_in: UserCreate,**kwargs):
         obj_in = UserInDB(
             **user_in.dict(),
             hashed_password=get_password_hash(user_in.password),
             created_at=datetime.now(),    
         )
-        result = await crud_user.create(session, obj_in,**kwargs)
+        result = await crud_user.create(session, obj_in,kwargs)
         return result
 
-    async def update_user_service(self, session, user_id: int, user_in: UserUpdate,kwargs):
+    async def update_user_service(self, session, user_id: int, user_in: UserUpdate,**kwargs):
         obj_in = UserUpdate(
             **user_in.dict(exclude_unset=True, exclude_none=True),
         )
