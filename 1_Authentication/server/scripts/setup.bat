@@ -1,3 +1,5 @@
+@echo off
+cd /d %~dp0..
 poetry install --no-root
 poetry shell
 alembic upgrade head
