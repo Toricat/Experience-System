@@ -26,6 +26,30 @@ class Settings(BaseSettings):
         env_file=".env", env_ignore_empty=True, extra="ignore"
     )
 
+    CONTACT_NAME: str
+    CONTACT_URL: str
+    CONTACT_EMAIL: str
+
+    LICENSE_NAME: str
+    LICENSE_URL: str
+
+    TERMS_OF_SERVICE: str
+
+    @property
+    def LICENSE_INFO(self):
+        return {
+            "name": self.LICENSE_NAME,
+            "url": self.LICENSE_URL
+        }
+
+    @property
+    def CONTACT(self):
+        return {
+            "name": self.CONTACT_NAME,
+            "url": self.CONTACT_URL,
+            "email": self.CONTACT_EMAIL
+        }
+
     APP_NAME: str
     APP_VERSION: str = "1.0.0"
     DOMAIN: str = "localhost"

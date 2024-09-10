@@ -13,7 +13,7 @@ from core.config import settings
 import time
 import logging
 
-logger = logging.getLogger("uvicorn.access")
+logger = logging.getLogger("api_calls")
 logger.disabled = True
 def register_middleware(app: FastAPI):
 
@@ -22,11 +22,15 @@ def register_middleware(app: FastAPI):
         start_time = time.time()
 
         response = await call_next(request)
+        status_code = response.status_code
+
         processing_time = time.time() - start_time
 
-        message = f"{request.client.host}:{request.client.port} - {request.method} - {request.url.path} - {response.status_code} completed after {processing_time}s"
+        message = f"From:{request.client.host}:{request.client.port} - To: {request.url} - Status: {status_code} - Completed after {processing_time:.2f}s"
 
-        print(message)
+        if status_code < 400:
+            logger.info(message)
+
         return response
 
     if settings.BACKEND_CORS_ORIGINS:

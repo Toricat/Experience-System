@@ -40,3 +40,10 @@ class  UserAccountInactiveError(ForbiddenError):
     """
     def __init__(self, language: str = "en"):
         super().__init__("user_account_inactive", language)
+
+class UserAccountAleadyActivatedError(ConflictError):
+    """
+    Raised when a user's account is already activated.
+    """
+    def __init__(self, language: str = "en"):
+        super().__init__("user_account_already_activated", language)

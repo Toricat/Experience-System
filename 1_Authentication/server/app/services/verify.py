@@ -1,20 +1,21 @@
 from datetime import datetime
-from .common.utils import send_email, render_email_template
+from .common.mail import send_email, render_email_template
 
 from core.security import create_verify_code, get_password_hash
+
 from repositories.users import crud_user
 from repositories.verifies import crud_verify
+
 from schemas.verifies import ActivateCodeInDB, RecoveryCodeInDB
 from schemas.auths import VerifyCodeComfirm, VerifyEmailSend, VerifyCodeChangePassword
 from schemas.utils import InfoEmailSend
 
-# Import custom errors
 from utils.error.verify import (
     ActivateCodeNotFoundError, ActivateCodeExpiredError, ActivateCodeAlreadyUsedError,
     RecoveryCodeNotFoundError, RecoveryCodeExpiredError, RecoveryCodeAlreadyUsedError
 )
-from utils.error.auth import EmailSendFailureError,UnauthorizedError
-from utils.error.user import UserNotFoundError, ConflictError
+from utils.error.auth import EmailSendFailureError,InvalidEmailError
+from utils.error.user import UserNotFoundError,UserAccountAleadyActivatedError,UserAccountInactiveError
 
 
 class VerifyService:
@@ -26,15 +27,15 @@ class VerifyService:
         Send activation code to user's email. If code already sent and not expired, 
         return a message indicating the code has already been sent.
         """
-        user = await crud_user.get(session, email=data.email)
+        user = await crud_user.get(session,return_columns=["id", "full_name", "is_active"], email=data.email)
         if user is None:
             raise UserNotFoundError()
-
+        if user.is_active:
+            raise UserAccountAleadyActivatedError()
         verify_active = await crud_verify.get(session, return_columns=["id", "exp_active"], user_id=user.id)
         if verify_active and verify_active.exp_active and verify_active.exp_active > datetime.now():
             return {"message": "Already sent code. Please check your email to verify your account."}
 
-        # Generate new activation code
         new_code_active, new_exp_active = create_verify_code()
         new_verify_active = ActivateCodeInDB(code_active=new_code_active, exp_active=new_exp_active, user_id=user.id)
 
@@ -43,7 +44,6 @@ class VerifyService:
         else:
             await crud_verify.create(session, obj_in=new_verify_active)
 
-        # Send email with activation code
         info = InfoEmailSend(email=data.email, name=user.full_name, verification_code=new_code_active)
         html_content = await render_email_template("verify_code.html", **info.dict())
         response = await send_email(
@@ -62,15 +62,16 @@ class VerifyService:
         Send recovery code to user's email. If code already sent and not expired,
         return a message indicating the code has already been sent.
         """
-        user = await crud_user.get(session, email=data.email)
+        user = await crud_user.get(session,return_columns=["id", "full_name", "is_active"], email=data.email)
         if user is None:
             raise UserNotFoundError()
+        if user.is_active is False:
+            raise UserAccountInactiveError()
 
         verify_recovery = await crud_verify.get(session, return_columns=["id", "exp_recovery"], user_id=user.id)
         if verify_recovery and verify_recovery.exp_recovery and verify_recovery.exp_recovery > datetime.now():
             return {"message": "Already sent code. Please check your email to recover your account."}
 
-        # Generate new recovery code
         new_code_recovery, new_exp_recovery = create_verify_code()
         new_verify_recovery = RecoveryCodeInDB(code_recovery=new_code_recovery, exp_recovery=new_exp_recovery, user_id=user.id)
 
@@ -79,7 +80,6 @@ class VerifyService:
         else:
             await crud_verify.create(session, obj_in=new_verify_recovery)
 
-        # Send email with recovery code
         info = InfoEmailSend(email=data.email, name=user.full_name, verification_code=new_code_recovery)
         html_content = await render_email_template("verify_code.html", **info.dict())
         response = await send_email(
@@ -108,9 +108,9 @@ class VerifyService:
 
         verify_user = await crud_user.get(session, return_columns=["email", "id", "is_active"], email=data.email)
         if verify_user is None or verify_user.id != verify_active.user_id:
-            raise UnauthorizedError("Invalid email or mismatch with the user ID.")
+            raise InvalidEmailError()
         if verify_user.is_active:
-            raise ConflictError("User already activated.")
+            raise UserAccountAleadyActivatedError()
         
         return verify_active
 
@@ -119,7 +119,7 @@ class VerifyService:
         """
         Service to confirm the activation code without updating user status.
         """
-        verify_active = await self.confirm_active_code(session, data)
+        await self.confirm_active_code(session, data)
         return {"message": "Activation code confirmed."}
 
     
@@ -128,8 +128,6 @@ class VerifyService:
         Service to confirm the activation code and activate the user account.
         """
         verify_active = await self.confirm_active_code(session, data)
-
-        # Update user and mark activation code as used
         await crud_user.update(session, id=verify_active.user_id, email=data.email, obj_in={"is_active": True})
         await crud_verify.update(session, user_id=verify_active.user_id, obj_in={"used_active": True})
 
@@ -151,7 +149,7 @@ class VerifyService:
 
         verify_user = await crud_user.get(session, return_columns=["email", "id"], email=data.email)
         if verify_user is None or verify_user.id != verify_recovery.user_id:
-            raise UnauthorizedError("Invalid email or mismatch with the user ID.")
+            raise InvalidEmailError()
 
         return verify_recovery
 
@@ -160,7 +158,7 @@ class VerifyService:
         """
         Service to confirm the recovery code without changing the password.
         """
-        verify_recovery = await self.confirm_recovery_code(session, data)
+        await self.confirm_recovery_code(session, data)
         return {"message": "Recovery code confirmed."}
 
     

@@ -1,17 +1,18 @@
 from typing import Optional
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field 
 from datetime import datetime
 
 class UserBase(BaseModel):
-    email: Optional[EmailStr] = Field(None, min_length=1)
-    full_name: Optional[str] = Field(None, min_length=3)
+    email: Optional[EmailStr] = Field(None, min_length=9, max_length=50)
+    full_name: Optional[str] = Field(None, min_length=3, max_length=50)
     image: Optional[str] = None
     role: Optional[str] = Field("user", min_length=1)
     is_active: Optional[bool] = None
 
 class UserCreate(UserBase):
+    full_name:str = Field(min_length=3)
     email: EmailStr
-    password: str = Field(..., min_length=6)
+    password: str = Field( min_length=6)
 
 class UserOAuth2Create(BaseModel):
     full_name: Optional[str]

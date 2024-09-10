@@ -18,12 +18,14 @@ from middlewares.middle_ware import register_middleware
 
 
 description = """
-A REST API for a book review web service.
+This is a REST API Ultimate example.
 
-This REST API is able to;
-- Create Read Update And delete books
-- Add reviews to books
-- Add tags to Books e.t.c.
+This REST API is able to:
+- Authentication & Authorization
+- Restful API 
+- Responsitory & Domain
+- Caching Redis
+- MiddleWares
     """
  
 def custom_generate_unique_id(route: APIRoute) -> str:
@@ -42,20 +44,15 @@ def create_application() -> FastAPI:
                         generate_unique_id_function=custom_generate_unique_id,
                         description=description,
                         version=settings.APP_VERSION,
-                        license_info={"name": "MIT License", "url": "https://opensource.org/license/mit"},
-                        contact={
-                            "name": "Ssali Jonathan",
-                            "url": "https://github.com/jod35",
-                            "email": "ssalijonathank@gmail.com",
-                        },
-                        terms_of_service="httpS://example.com/tos",
+                        license_info=settings.LICENSE_INFO,
+                        contact= settings.CONTACT,
+                        terms_of_service=settings.TERMS_OF_SERVICE,
                         openapi_url=f"{settings.API_VERSION}/openapi.json",
                         docs_url=f"{settings.API_VERSION}/docs",
                         redoc_url=f"{settings.API_VERSION}/redoc"
                         )
-
-    register_error_handlers(application)
     register_middleware(application)
+    register_error_handlers(application)
     
     # application.add_event_handler("startup", create_redis_pool)
     # application.add_event_handler("shutdown", close_redis_pool)

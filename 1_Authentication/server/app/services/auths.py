@@ -1,5 +1,5 @@
 from datetime import datetime
-from .common.utils import send_email, render_email_template
+from .common.mail import send_email, render_email_template
 
 from core.security import create_access_token, create_refresh_token, create_verify_code, get_password_hash, is_valid_password, create_state
 from core.config import settings

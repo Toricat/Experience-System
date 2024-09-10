@@ -49,3 +49,9 @@ class RefreshTokenError(UnauthorizedError):
     """
     def __init__(self, language: str = "en"):
         super().__init__("invalid_refresh_token", language)
+class InvalidEmailError(BadRequestError):
+    """
+    Raised when the email is invalid.
+    """
+    def __init__(self, language: str = "en"):
+        super().__init__("invalid_email", language)

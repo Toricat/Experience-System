@@ -13,5 +13,6 @@
     "item_not_found": "Item not found",
     "item_already_exists": "Item already exists",
     "item_out_of_stock": "Item is out of stock",
-    "item_permission_denied": "Permission denied for this item"
+    "item_permission_denied": "Permission denied for this item",
+    "invalid_credentials": "Your email or password is incorrect"
 }

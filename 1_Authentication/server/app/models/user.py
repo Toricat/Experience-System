@@ -5,7 +5,7 @@ from .base import Base
 
 class User(Base):
     id = Column(Integer, primary_key=True, index=True)
-    full_name = Column(String(225), index=False)
+    full_name = Column(String(225), index=False, nullable=False)
     email = Column(String(225), unique=True, index=True, nullable=False)
     hashed_password = Column(String(225), nullable=False)
     image = Column(String(225), nullable=True)
