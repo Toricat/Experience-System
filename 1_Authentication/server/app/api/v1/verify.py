@@ -50,8 +50,8 @@ async def confirm_recovery_code(
     result = await verify_service.confirm_recovery_code_service(session, data)
     return result
 
-@router.post("/recovery-account/code/change-password",response_model=Message)
-async def confirm_recovery_code_change_password(
+@router.put("/recovery-account/code/change-password", response_model=Message)
+async def confirm_recovery_code_and_change_password(
     session: SessionDep,
     data: VerifyCodeChangePassword, 
     ):

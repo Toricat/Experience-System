@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends,Request 
+from fastapi import APIRouter, Depends, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 
 from schemas.tokens import TokenLogin
@@ -18,7 +18,7 @@ router = APIRouter(prefix="/auth")
 async def login(
     session: SessionDep,
     data: OAuth2PasswordRequestForm = Depends()):
-    result = await auth_service.login_service(session, data=data )  
+    result = await auth_service.login_service(session, data=data)  
     return result
 
 @router.post("/register",response_model=Message)
@@ -53,11 +53,11 @@ async def read_users_me(
     result = current_user.dict()
     return result
 
-@router.post("/update-me",response_model=Message)
-async def change_password(
+@router.put("/update-password", response_model=Message)
+async def update_password(
     session: SessionDep,
     data: ChangePassword, 
-    current_user: User = Depends(RoleChecker(["admin","user"]))
+    current_user: User = Depends(RoleChecker(["admin", "user"]))
 ):
     result = await auth_service.change_password_service(session, data, current_user)
     return result

@@ -1,4 +1,4 @@
-from utils.error.base import ConflictError, NotFoundError, ForbiddenError
+from utils.error.base import ConflictError, NotFoundError, ForbiddenError,UnauthorizedError
 # =======================
 # User Service Errors
 # =======================
@@ -34,7 +34,7 @@ class UserPermissionDeniedError(ForbiddenError):
     def __init__(self, language: str = "en"):
         super().__init__("user_permission_denied", language)
 
-class  UserAccountInactiveError(ForbiddenError):
+class  UserAccountInactiveError(UnauthorizedError):
     """
     Raised when a user's account is inactive.
     """

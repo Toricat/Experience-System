@@ -1,4 +1,4 @@
-from utils.error.base import BadRequestError, UnauthorizedError
+from utils.error.base import BadRequestError, UnauthorizedError,ConflictError,UnprocessableEntityError
 # =======================
 # Auth Service Errors
 # =======================
@@ -19,7 +19,7 @@ class OAuthClientError(BadRequestError):
         super().__init__("oauth_client_error", language)
 
 
-class OAuthStateMismatchError(BadRequestError):
+class OAuthStateMismatchError(ConflictError):
     """
     Raised when there is a state mismatch during the OAuth flow.
     """
@@ -49,7 +49,7 @@ class RefreshTokenError(UnauthorizedError):
     """
     def __init__(self, language: str = "en"):
         super().__init__("invalid_refresh_token", language)
-class InvalidEmailError(BadRequestError):
+class InvalidEmailError(UnprocessableEntityError):
     """
     Raised when the email is invalid.
     """

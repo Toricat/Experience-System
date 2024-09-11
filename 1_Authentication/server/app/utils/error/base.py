@@ -47,6 +47,12 @@ class NotFoundError(AppError):
     def __init__(self, key: str, language: str = "en"):
         super().__init__(key, language, 404)  # HTTP 404 Not Found
 
+class MethodNotAllowedError(AppError):
+    """
+    Represents a 405 Method Not Allowed error.
+    """
+    def __init__(self, key: str, language: str = "en"):
+        super().__init__(key, language, 405)  # HTTP 405 Method Not Allowed
 
 class ConflictError(AppError):
     """
@@ -63,5 +69,26 @@ class GoneError(AppError):
     def __init__(self, key: str, language: str = "en"):
         super().__init__(key, language, 410)  # HTTP 410 Gone
 
+class UnsupportedMediaTypeError(AppError):
+    """
+    Represents a 415 Unsupported Media Type error.
+    """
+    def __init__(self, key: str , language: str = "en"):
+        super().__init__(key, language, 415)  # HTTP 415 Unsupported Media Type
 
+class UnprocessableEntityError(AppError):
+    """
+    Represents a 422 Unprocessable Entity error.
+    Occurs when the data is not valid.
+    """
+    def __init__(self, key: str, language: str = "en"):
+        super().__init__(key, language, 422)  # HTTP 422 Unprocessable Entity
+
+class TooManyRequestsError(AppError):
+    """
+    Represents a 429 Too Many Requests error.
+    Occurs when the client exceeds rate limits.
+    """
+    def __init__(self, key: str, language: str = "en"):
+        super().__init__(key, language, 429)  # HTTP 429 Too Many Requests
 

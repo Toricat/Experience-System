@@ -9,7 +9,6 @@ from typing import Annotated,Optional, Dict
 from jose import JWTError, jwt
 from core.config import settings
 from core.db import SessionLocal
-from core.security import ALGORITHM
 
 from schemas.users import User
 from schemas.tokens import AccessTokenPayload
@@ -35,14 +34,26 @@ TokenDep = Annotated[str, Depends(oauth2)]
 async def get_token_data(token: TokenDep) -> AccessTokenPayload:
     try:
         secret_key = settings.SECRET_KEY
-        payload = jwt.decode(token, secret_key, algorithms=[ALGORITHM])
-    
+
+        payload = jwt.decode(token, key=secret_key)
+        print(payload)
+       
         if datetime.fromtimestamp(payload["exp"], tz=timezone.utc) < datetime.now(tz=timezone.utc):
-            raise HTTPException(status_code=401, detail="Token has expired", headers={"WWW-Authenticate": "Bearer"},)
+            raise HTTPException(
+                status_code=401, 
+                detail="Token has expired", 
+                headers={"WWW-Authenticate": "Bearer"},
+            )
 
         token_data = AccessTokenPayload(**payload)
-    except JWTError :
-        raise HTTPException(status_code=403, detail="Could not validate credentials", headers={"WWW-Authenticate": "Bearer"},)
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=403, 
+            detail="Could not validate credentials", 
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     return token_data
 
 

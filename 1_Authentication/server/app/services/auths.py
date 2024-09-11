@@ -48,7 +48,7 @@ class AuthService:
             redirect_uri=f"{settings.server_host}/auth/callback/github",
             userinfo_endpoint="https://api.github.com/user"
         )
-
+        self.curd_user = crud_user
     async def oauth_login_service(self, request, provider: str):
         if provider not in ["google", "github"]:
             raise OAuthProviderNotSupportedError()  

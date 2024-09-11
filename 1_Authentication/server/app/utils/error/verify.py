@@ -1,11 +1,11 @@
 # utils/error/verify.py
 
-from utils.error.base import UnauthorizedError, ConflictError
+from utils.error.base import UnauthorizedError, ConflictError,NotFoundError
 
 # ======================
 # Activate Code Errors
 # ======================
-class ActivateCodeNotFoundError(UnauthorizedError):
+class ActivateCodeNotFoundError(NotFoundError):
     """
     Raised when the activation code is not found.
     """
@@ -32,7 +32,7 @@ class ActivateCodeAlreadyUsedError(ConflictError):
 # ======================
 # Recovery Code Errors
 # ======================
-class RecoveryCodeNotFoundError(UnauthorizedError):
+class RecoveryCodeNotFoundError(NotFoundError):
     """
     Raised when the recovery code is not found.
     """
