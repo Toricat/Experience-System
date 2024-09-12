@@ -1,15 +1,12 @@
 import time
 from typing import Awaitable, Callable
 
-from arq import create_pool
-from arq.connections import RedisSettings
 from fastapi import FastAPI,Request, Response
 from fastapi.routing import APIRoute
 
 import logging
 
 from api.router import api_router
-from core import redis
 from core.config import settings
 
 from utils.logger import logger
@@ -30,14 +27,6 @@ This REST API is able to:
  
 def custom_generate_unique_id(route: APIRoute) -> str:
     return f"{route.tags[0]}-{route.name}"
-
-# async def create_redis_pool():
-#     redis.pool = await create_pool(
-#         RedisSettings(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
-#     )
-
-# async def close_redis_pool():
-#     redis.pool.close()
 
 def create_application() -> FastAPI:
     application = FastAPI(title=settings.APP_NAME,

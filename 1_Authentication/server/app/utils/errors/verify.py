@@ -1,6 +1,6 @@
 # utils/error/verify.py
 
-from utils.error.base import UnauthorizedError, ConflictError,NotFoundError
+from utils.errors.base import UnauthorizedError, ConflictError,NotFoundError
 
 # ======================
 # Activate Code Errors

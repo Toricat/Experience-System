@@ -1,14 +1,17 @@
-import smtplib
+from pathlib import Path
 import datetime
+
+import smtplib
+from jinja2 import Template
+
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
 from email.utils import formataddr
-from pathlib import Path
+
 from core.config import settings
-from jinja2 import Template
-from pathlib import Path
+from core.celery import celery
 
 async def render_email_template(template_name: str, **kwargs) -> str:
     project_root = Path(__file__).resolve().parent.parent.parent
@@ -26,7 +29,7 @@ async def render_email_template(template_name: str, **kwargs) -> str:
     
     return html_content
 
-
+@celery.task(bind=True)
 async def send_email(
     *,
     email_to: str,

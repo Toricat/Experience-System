@@ -1,4 +1,4 @@
-from utils.error.base import UnauthorizedError, ForbiddenError
+from utils.errors.base import UnauthorizedError, ForbiddenError
 # =======================
 # Token Service Errors
 # =======================

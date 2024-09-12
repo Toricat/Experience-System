@@ -66,7 +66,8 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
         query = query.offset(offset).limit(limit)
         result = await session.execute(query)
-        return result.scalars().all()
+        result.scalars().all()
+        return 
 
     async def update(
         self,

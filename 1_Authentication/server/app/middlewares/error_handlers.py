@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError, InvalidRequestError, OperationalError, ProgrammingError
 from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
-from utils.error.base import AppError
+from utils.errors.base import AppError
 from utils.logger import logger
 import logging
 
@@ -44,7 +44,6 @@ async def db_error_handler(request: Request, exc: SQLAlchemyError):
     Logs the error with different levels depending on the type of database error, and returns an appropriate JSON response with the HTTP status code.
     """
     error_type = exc.__class__.__name__
-    # Determine logging level and status code based on error type
     if isinstance(exc, IntegrityError):
         logger.error(f"Database Error: {error_type} - From: {request.client.host}:{request.client.port} - To: {request.url} - Message: {str(exc)}")
         return JSONResponse(

@@ -14,7 +14,7 @@ router = APIRouter(prefix="/items")
 @router.get("/", response_model=list[Item])
 async def get_multi_items(
     session: SessionDep,
-    current_user: User = Depends(RoleChecker(["admin"])),
+    current_user: User = Depends(RoleChecker(["admin", "user"])),
     offset: int = 0,
     limit: int = 100,
 ):
@@ -54,12 +54,12 @@ async def create_item(
     return result
 
 
-@router.put("/{item_id}/", response_model=Item)
+@router.put("/{item_id}/", response_model=Item,)
 async def update_item(
     item_id: int,
     item_in: ItemUpdate,
     session: SessionDep,
-    current_user: User = Depends(RoleChecker(["admin", "user"])),
+    current_user: User = Depends(RoleChecker(["admin"])),
 ):
     """
     Update an item
@@ -72,7 +72,7 @@ async def update_item(
 async def delete_item(
     item_id: int,
     session: SessionDep,
-    current_user: User = Depends(RoleChecker(["admin", "user"])),
+    current_user: User = Depends(RoleChecker(["admin"])),
 ):
     """
     Delete an item
@@ -80,3 +80,6 @@ async def delete_item(
     kwargs = await check_permissions(current_user, action="delete")
     result = await item_service.delete_item_service( session=session, item_id=item_id,  kwargs=kwargs)
     return result
+
+
+

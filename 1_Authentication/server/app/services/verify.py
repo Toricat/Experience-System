@@ -10,12 +10,12 @@ from schemas.verifies import ActivateCodeInDB, RecoveryCodeInDB
 from schemas.auths import VerifyCodeComfirm, VerifyEmailSend, VerifyCodeChangePassword
 from schemas.utils import InfoEmailSend
 
-from utils.error.verify import (
+from utils.errors.verify import (
     ActivateCodeNotFoundError, ActivateCodeExpiredError, ActivateCodeAlreadyUsedError,
     RecoveryCodeNotFoundError, RecoveryCodeExpiredError, RecoveryCodeAlreadyUsedError
 )
-from utils.error.auth import EmailSendFailureError,InvalidEmailError
-from utils.error.user import UserNotFoundError,UserAccountAleadyActivatedError,UserAccountInactiveError
+from utils.errors.auth import EmailSendFailureError,InvalidEmailError
+from utils.errors.user import UserNotFoundError,UserAccountAleadyActivatedError,UserAccountInactiveError
 
 
 class VerifyService:

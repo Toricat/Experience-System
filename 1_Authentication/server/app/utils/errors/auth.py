@@ -1,4 +1,4 @@
-from utils.error.base import BadRequestError, UnauthorizedError,ConflictError,UnprocessableEntityError
+from utils.errors.base import BadRequestError, UnauthorizedError,ConflictError,UnprocessableEntityError
 # =======================
 # Auth Service Errors
 # =======================
@@ -55,3 +55,4 @@ class InvalidEmailError(UnprocessableEntityError):
     """
     def __init__(self, language: str = "en"):
         super().__init__("invalid_email", language)
+

@@ -14,7 +14,7 @@ from schemas.verifies import ActivateCodeInDB
 from schemas.auths import TokenRefresh, ChangePassword, Login
 from schemas.utils import InfoEmailSend
 
-from utils.error.auth import (
+from utils.errors.auth import (
     OAuthProviderNotSupportedError,
     OAuthClientError,
     OAuthStateMismatchError,
@@ -23,8 +23,8 @@ from utils.error.auth import (
     EmailSendFailureError
 )
 
-from utils.error.user import UserAccountInactiveError
-from utils.error.token import RefreshTokenExpiredError
+from utils.errors.user import UserAccountInactiveError
+from utils.errors.token import RefreshTokenExpiredError
 
 from authlib.integrations.starlette_client import OAuth
 
@@ -154,7 +154,7 @@ class AuthService:
 
         info = InfoEmailSend(email=data.email, name=user.full_name, verification_code=code_active)
         html_content = await render_email_template("register_code.html", **info.dict())
-        response = await send_email(
+        response = await send_email.apply_async(
             email_to=data.email,
             subject="Your Verification Code",
             html_content=html_content

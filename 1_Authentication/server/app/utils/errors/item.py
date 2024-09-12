@@ -1,4 +1,4 @@
-from utils.error.base import NotFoundError, ConflictError, GoneError, ForbiddenError
+from utils.errors.base import NotFoundError, ConflictError, GoneError, ForbiddenError
 # =======================
 # Item Service Errors
 # =======================

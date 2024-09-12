@@ -8,12 +8,13 @@ from typing import Annotated,Optional, Dict
 
 from jose import JWTError, jwt
 from core.config import settings
-from core.db import SessionLocal
+from db.db import SessionLocal
 
 from schemas.users import User
 from schemas.tokens import AccessTokenPayload
 
 from services.users import UserService
+from utils.errors.token import AccessTokenInvalidError, AccessTokenExpiredError
 
 
 user_service = UserService()
@@ -36,24 +37,14 @@ async def get_token_data(token: TokenDep) -> AccessTokenPayload:
         secret_key = settings.SECRET_KEY
 
         payload = jwt.decode(token, key=secret_key)
-        print(payload)
        
         if datetime.fromtimestamp(payload["exp"], tz=timezone.utc) < datetime.now(tz=timezone.utc):
-            raise HTTPException(
-                status_code=401, 
-                detail="Token has expired", 
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+            raise  AccessTokenExpiredError()
 
         token_data = AccessTokenPayload(**payload)
 
     except Exception as e:
-        raise HTTPException(
-            status_code=403, 
-            detail="Could not validate credentials", 
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
+        raise AccessTokenInvalidError()
     return token_data
 
 

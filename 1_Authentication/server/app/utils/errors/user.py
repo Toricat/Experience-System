@@ -1,4 +1,4 @@
-from utils.error.base import ConflictError, NotFoundError, ForbiddenError,UnauthorizedError
+from utils.errors.base import ConflictError, NotFoundError, ForbiddenError,UnauthorizedError
 # =======================
 # User Service Errors
 # =======================
