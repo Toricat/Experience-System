@@ -12,9 +12,6 @@ class User(Base):
     role = Column(String(225), nullable=False, default="user")
     account_type = Column(String(225), nullable=False, default="local")
     is_active = Column(Boolean, nullable=False, default=False)
-    created_at = Column(DateTime, nullable=False)
-    last_login = Column(DateTime)
-    verify = relationship("Verify", back_populates="owner", uselist=False, cascade="all, delete-orphan", passive_deletes=True)
     token = relationship("Token", back_populates="owner", uselist=False, cascade="all, delete-orphan", passive_deletes=True)
     item = relationship("Item", back_populates="owner", cascade="all, delete-orphan", passive_deletes=True)
    

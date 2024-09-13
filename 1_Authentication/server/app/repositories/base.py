@@ -38,7 +38,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         if return_columns:
             model_columns = [getattr(self._model, column) for column in return_columns]
             query = query.options(load_only(*model_columns))
-
+        print(query)
         result = await session.execute(query)
         return result.scalars().first()
     async def get_multi(
@@ -65,8 +65,10 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
                 query = query.order_by(asc(order_by))
 
         query = query.offset(offset).limit(limit)
+        print(query)
         result = await session.execute(query)
         result.scalars().all()
+
         return 
 
     async def update(

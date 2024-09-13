@@ -14,7 +14,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 ALGORITHM=settings.ALGORITHM
 
 def create_access_token(user: User) -> str:
-    expire = datetime.now() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.now() + timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES)
     header = {"alg": settings.ALGORITHM }  
     payload = {
         "exp": expire,  
@@ -29,7 +29,7 @@ def create_refresh_token() -> str:
     return refresh_token, expire 
 
 def create_verify_code() -> str:
-    expire = datetime.now() + timedelta(minutes=settings.VERIFY_CODE_EXPIRE_MINUTES)
+    expire =settings.VERIFY_CODE_EXPIRE_MINUTES
     verify_code =str(uuid.uuid4()) 
     return verify_code, expire 
 def create_state() -> str:

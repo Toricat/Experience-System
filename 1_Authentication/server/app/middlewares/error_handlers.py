@@ -9,6 +9,9 @@ import logging
 
 logger = logging.getLogger('api_calls')
 
+
+
+
 async def app_error_handler(request: Request, exc: AppError):
     """
     Handle custom application-level errors derived from AppError.

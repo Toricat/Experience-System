@@ -62,12 +62,12 @@ class Settings(BaseSettings):
     API_VERSION: str = "/api/v1"
     SECRET_KEY: str = secrets.token_urlsafe(32)
     ALGORITHM: str = "HS256"
-    # 60 minutes * 24 hours * 1 days = 1 days
+    # 60 seconds * 24 hours * 1 days = 1 days
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 1
-    # 60 minutes * 24 hours * 14 days = 14days
+    # 60 seconds * 24 hours * 14 days = 14days
     REFRESH_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 14
     # 5 minutes
-    VERIFY_CODE_EXPIRE_MINUTES: int = 5
+    VERIFY_CODE_EXPIRE_MINUTES: int = 60 * 5
 
 
     @model_validator(mode="after")

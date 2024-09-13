@@ -1,13 +1,19 @@
-import time
-from typing import Awaitable, Callable
+from contextlib import asynccontextmanager
 
-from fastapi import FastAPI,Request, Response
+from fastapi import FastAPI
 from fastapi.routing import APIRoute
+
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.redis import RedisBackend
+
+import redis.asyncio as redis
+from redis.asyncio.connection import ConnectionPool
 
 import logging
 
 from api.router import api_router
 from core.config import settings
+from core.redis import get_redis_client
 
 from utils.logger import logger
 from middlewares.error_handlers import  register_error_handlers
@@ -28,6 +34,13 @@ This REST API is able to:
 def custom_generate_unique_id(route: APIRoute) -> str:
     return f"{route.tags[0]}-{route.name}"
 
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    redis_client = await get_redis_client()
+    FastAPICache.init(RedisBackend(redis_client), prefix="fastapi-cache")
+    yield
+
+
 def create_application() -> FastAPI:
     application = FastAPI(title=settings.APP_NAME,
                         generate_unique_id_function=custom_generate_unique_id,
@@ -38,7 +51,8 @@ def create_application() -> FastAPI:
                         terms_of_service=settings.TERMS_OF_SERVICE,
                         openapi_url=f"{settings.API_VERSION}/openapi.json",
                         docs_url=f"{settings.API_VERSION}/docs",
-                        redoc_url=f"{settings.API_VERSION}/redoc"
+                        redoc_url=f"{settings.API_VERSION}/redoc",
+                        lifespan=lifespan,
                         )
     register_middleware(application)
     register_error_handlers(application)

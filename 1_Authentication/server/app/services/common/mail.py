@@ -29,7 +29,7 @@ async def render_email_template(template_name: str, **kwargs) -> str:
     
     return html_content
 
-@celery.task(bind=True)
+# @celery.task(bind=True)
 async def send_email(
     *,
     email_to: str,

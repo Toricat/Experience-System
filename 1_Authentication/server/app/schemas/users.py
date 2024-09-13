@@ -20,20 +20,17 @@ class UserOAuth2Create(BaseModel):
     image: Optional[str]
     account_type: str
     is_active: bool = True
-    created_at: datetime
-    last_login: datetime
 
 class UserUpdate(UserBase):
     password: Optional[str] = Field(None, min_length=6)
-    last_login:  Optional[datetime] = None
+
 
 class UserInDB(UserBase):
     id: Optional[int] = None
     hashed_password: str
     account_type: Optional[str] = "local"
     is_active: Optional[bool] = False
-    created_at: Optional[datetime] = None
-    last_login: Optional[datetime] = None
+    
 
     class Config:
         from_attributes=True

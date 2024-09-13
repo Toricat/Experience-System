@@ -1,16 +1,16 @@
 # utils/error/verify.py
 
-from utils.errors.base import UnauthorizedError, ConflictError,NotFoundError
+from utils.errors.base import UnauthorizedError
 
 # ======================
 # Activate Code Errors
 # ======================
-class ActivateCodeNotFoundError(NotFoundError):
+class ActivateCodeInvalidError(UnauthorizedError):
     """
-    Raised when the activation code is not found.
+    Raised when the activation code is invalid.
     """
     def __init__(self, language: str = "en"):
-        super().__init__("activate_code_not_found", language)
+        super().__init__("activate_code_invalid", language)
 
 
 class ActivateCodeExpiredError(UnauthorizedError):
@@ -21,23 +21,16 @@ class ActivateCodeExpiredError(UnauthorizedError):
         super().__init__("activate_code_expired", language)
 
 
-class ActivateCodeAlreadyUsedError(ConflictError):
-    """
-    Raised when the activation code has already been used.
-    """
-    def __init__(self, language: str = "en"):
-        super().__init__("activate_code_already_used", language)
-
 
 # ======================
 # Recovery Code Errors
 # ======================
-class RecoveryCodeNotFoundError(NotFoundError):
+class RecoveryCodeInvalidError( UnauthorizedError):
     """
-    Raised when the recovery code is not found.
+    Raised when the recovery code is invalid.
     """
     def __init__(self, language: str = "en"):
-        super().__init__("recovery_code_not_found", language)
+        super().__init__("recovery_code_invalid", language)
 
 
 class RecoveryCodeExpiredError(UnauthorizedError):
@@ -46,11 +39,3 @@ class RecoveryCodeExpiredError(UnauthorizedError):
     """
     def __init__(self, language: str = "en"):
         super().__init__("recovery_code_expired", language)
-
-
-class RecoveryCodeAlreadyUsedError(ConflictError):
-    """
-    Raised when the recovery code has already been used.
-    """
-    def __init__(self, language: str = "en"):
-        super().__init__("recovery_code_already_used", language)

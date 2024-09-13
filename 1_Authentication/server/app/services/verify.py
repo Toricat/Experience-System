@@ -1,82 +1,65 @@
-from datetime import datetime
+import asyncio
 from .common.mail import send_email, render_email_template
 
 from core.security import create_verify_code, get_password_hash
+from core.redis import get_redis_client
 
 from repositories.users import crud_user
-from repositories.verifies import crud_verify
 
-from schemas.verifies import ActivateCodeInDB, RecoveryCodeInDB
+
+
 from schemas.auths import VerifyCodeComfirm, VerifyEmailSend, VerifyCodeChangePassword
 from schemas.utils import InfoEmailSend
 
 from utils.errors.verify import (
-    ActivateCodeNotFoundError, ActivateCodeExpiredError, ActivateCodeAlreadyUsedError,
-    RecoveryCodeNotFoundError, RecoveryCodeExpiredError, RecoveryCodeAlreadyUsedError
+    ActivateCodeInvalidError, ActivateCodeExpiredError, 
+    RecoveryCodeInvalidError, RecoveryCodeExpiredError, 
 )
 from utils.errors.auth import EmailSendFailureError,InvalidEmailError
 from utils.errors.user import UserNotFoundError,UserAccountAleadyActivatedError,UserAccountInactiveError
 
 
-class VerifyService:
+class VerifyService():
     def __init__(self):
-        pass
-    
+        self.redis_client = asyncio.run(get_redis_client()) 
+
     async def active_code_by_email_service(self, session, data: VerifyEmailSend):
         """
-        Send activation code to user's email. If code already sent and not expired, 
-        return a message indicating the code has already been sent.
+        Send activation code to user's email. Store the activation code in Redis.
         """
-        user = await crud_user.get(session,return_columns=["id", "full_name", "is_active"], email=data.email)
+        user = await crud_user.get( session,return_columns=["id", "full_name", "is_active"], email=data.email)
         if user is None:
             raise UserNotFoundError()
         if user.is_active:
             raise UserAccountAleadyActivatedError()
-        verify_active = await crud_verify.get(session, return_columns=["id", "exp_active"], user_id=user.id)
-        if verify_active and verify_active.exp_active and verify_active.exp_active > datetime.now():
-            return {"message": "Already sent code. Please check your email to verify your account."}
+        existing_code = await self.redis_client.get(f"activate_code:{user.id}")
+        if existing_code:
+            return {"message": "Activation code already sent. Please check your email."}
 
         new_code_active, new_exp_active = create_verify_code()
-        new_verify_active = ActivateCodeInDB(code_active=new_code_active, exp_active=new_exp_active, user_id=user.id)
-
-        if verify_active:
-            await crud_verify.update(session, id=verify_active.id, obj_in=new_verify_active.dict(exclude_unset=True, exclude_none=True))
-        else:
-            await crud_verify.create(session, obj_in=new_verify_active)
-
+        await self.redis_client.setex(f"activate_code:{user.id}", new_exp_active, new_code_active)
         info = InfoEmailSend(email=data.email, name=user.full_name, verification_code=new_code_active)
         html_content = await render_email_template("verify_code.html", **info.dict())
-        response = await send_email(
-            email_to=data.email,
-            subject="Your Activation Code",
-            html_content=html_content
-        )
+        response = await send_email(email_to=data.email, subject="Your Activation Code", html_content=html_content)
         if not response:
             raise EmailSendFailureError()
-
-        return {"message": "Successfully sent code. Please check your email to verify your account."}
-
-    
+        return {"message": "Activation code sent successfully. Please check your email."}
     async def recovery_code_by_email_service(self, session, data: VerifyEmailSend):
         """
         Send recovery code to user's email. If code already sent and not expired,
         return a message indicating the code has already been sent.
         """
+       
         user = await crud_user.get(session,return_columns=["id", "full_name"], email=data.email)
         if user is None:
             raise UserNotFoundError()
-
-        verify_recovery = await crud_verify.get(session, return_columns=["id", "exp_recovery"], user_id=user.id)
-        if verify_recovery and verify_recovery.exp_recovery and verify_recovery.exp_recovery > datetime.now():
-            return {"message": "Already sent code. Please check your email to recover your account."}
+        existing_code = await self.redis_client.get(f"recovery_code:{user.id}")
+        if existing_code:
+            return {"message": "Recovery code already sent. Please check your email to recover your account."}
 
         new_code_recovery, new_exp_recovery = create_verify_code()
-        new_verify_recovery = RecoveryCodeInDB(code_recovery=new_code_recovery, exp_recovery=new_exp_recovery, user_id=user.id)
-
-        if verify_recovery:
-            await crud_verify.update(session, id=verify_recovery.id, obj_in=new_verify_recovery.dict(exclude_unset=True, exclude_none=True))
-        else:
-            await crud_verify.create(session, obj_in=new_verify_recovery)
+        await self.redis_client.setex(f"recovery_code:{user.id}", new_exp_recovery, new_code_recovery)
+        
 
         info = InfoEmailSend(email=data.email, name=user.full_name, verification_code=new_code_recovery)
         html_content = await render_email_template("verify_code.html", **info.dict())
@@ -91,27 +74,22 @@ class VerifyService:
         return {"message": "Successfully sent code. Please check your email to recover your account."}
 
     
-    async def confirm_active_code(self, session, data: VerifyCodeComfirm):
+    async def confirm_active_code(self,session, data: VerifyCodeComfirm):
         """
-        Confirm the activation code. Raises appropriate errors if the code is invalid,
-        expired, or already used.
+        Confirm the activation code from Redis.
         """
-        verify_active = await crud_verify.get(session, return_columns=["exp_active", "user_id", "used_active"], code_active=data.verify_code)
-        if verify_active is None:
-            raise ActivateCodeNotFoundError()
-        if verify_active.used_active:
-            raise ActivateCodeAlreadyUsedError()
-        if verify_active.exp_active < datetime.now():
+        user = await crud_user.get(session,return_columns=["id"], email=data.email)
+        print(user)
+        if user is None:
+            raise UserNotFoundError()
+        activate_code = await self.redis_client.get(f"activate_code:{user.id}")
+        if not activate_code:
             raise ActivateCodeExpiredError()
-
-        verify_user = await crud_user.get(session, return_columns=["email", "id", "is_active"], email=data.email)
-        if verify_user is None or verify_user.id != verify_active.user_id:
-            raise InvalidEmailError()
-        if verify_user.is_active:
-            raise UserAccountAleadyActivatedError()
+        if activate_code != data.verify_code:
+            raise  ActivateCodeInvalidError()
         
-        return verify_active
-
+        await self.redis_client.delete(f"activate_code:{user.id}")  
+        return True
     
     async def confirm_active_code_service(self, session, data: VerifyCodeComfirm):
         """
@@ -125,31 +103,25 @@ class VerifyService:
         """
         Service to confirm the activation code and activate the user account.
         """
-        verify_active = await self.confirm_active_code(session, data)
-        await crud_user.update(session, id=verify_active.user_id, email=data.email, obj_in={"is_active": True})
-        await crud_verify.update(session, user_id=verify_active.user_id, obj_in={"used_active": True})
-
+        await self.confirm_active_code(session, data)
+        await crud_user.update(session,email=data.email, obj_in={"is_active": True})
         return {"message": "User activated successfully."}
-
     
     async def confirm_recovery_code(self, session, data: VerifyCodeComfirm):
         """
         Confirm the recovery code. Raises appropriate errors if the code is invalid,
         expired, or already used.
         """
-        verify_recovery = await crud_verify.get(session, return_columns=["exp_recovery", "user_id", "used_recovery"], code_recovery=data.verify_code)
-        if verify_recovery is None:
-            raise RecoveryCodeNotFoundError()
-        if verify_recovery.used_recovery:
-            raise RecoveryCodeAlreadyUsedError()
-        if verify_recovery.exp_recovery < datetime.now():
+        user = await crud_user.get(session,return_columns=["email", "id"], email=data.email)
+        if user is None:
+            raise UserNotFoundError()
+
+        recovery_code = await self.redis_client.get(f"recovery_code:{user.id}")
+        if not recovery_code:
             raise RecoveryCodeExpiredError()
-
-        verify_user = await crud_user.get(session, return_columns=["email", "id"], email=data.email)
-        if verify_user is None or verify_user.id != verify_recovery.user_id:
-            raise InvalidEmailError()
-
-        return verify_recovery
+        if recovery_code != data.verify_code:
+            raise RecoveryCodeInvalidError()
+        return True
 
     
     async def confirm_recovery_code_service(self, session, data: VerifyCodeComfirm):
@@ -164,9 +136,7 @@ class VerifyService:
         """
         Service to confirm the recovery code and change the user's password.
         """
-        verify_recovery = await self.confirm_recovery_code(session, data)
-
-        await crud_user.update(session, id=verify_recovery.user_id, obj_in={"hashed_password": get_password_hash(data.new_password)})
-        await crud_verify.update(session, user_id=verify_recovery.user_id, obj_in={"used_recovery": True})
-
+        await self.confirm_recovery_code(session, data)
+        await crud_user.update(session, email=data.email, obj_in={"hashed_password": get_password_hash(data.new_password)})
+    
         return {"message": "Password changed successfully."}

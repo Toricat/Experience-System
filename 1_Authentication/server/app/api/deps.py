@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime, timezone
 from typing import Annotated,Optional, Dict
 
-from jose import JWTError, jwt
+from authlib.jose import jwt
 from core.config import settings
 from db.db import SessionLocal
 
@@ -37,7 +37,7 @@ async def get_token_data(token: TokenDep) -> AccessTokenPayload:
         secret_key = settings.SECRET_KEY
 
         payload = jwt.decode(token, key=secret_key)
-       
+        print(payload)
         if datetime.fromtimestamp(payload["exp"], tz=timezone.utc) < datetime.now(tz=timezone.utc):
             raise  AccessTokenExpiredError()
 

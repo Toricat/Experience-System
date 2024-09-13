@@ -1,16 +1,16 @@
 from datetime import datetime
+import asyncio
 from .common.mail import send_email, render_email_template
 
 from core.security import create_access_token, create_refresh_token, create_verify_code, get_password_hash, is_valid_password, create_state
 from core.config import settings
+from core.redis import get_redis_client
 
 from repositories.users import crud_user
 from repositories.tokens import crud_token
-from repositories.verifies import crud_verify
 
 from schemas.tokens import TokenInDB, TokenLogin
 from schemas.users import UserInDB, UserCreate, UserBase, UserUpdate
-from schemas.verifies import ActivateCodeInDB
 from schemas.auths import TokenRefresh, ChangePassword, Login
 from schemas.utils import InfoEmailSend
 
@@ -28,7 +28,7 @@ from utils.errors.token import RefreshTokenExpiredError
 
 from authlib.integrations.starlette_client import OAuth
 
-class AuthService:
+class AuthService():
     def __init__(self):
         self.oauth = OAuth()
         self.oauth.register(
@@ -49,6 +49,8 @@ class AuthService:
             userinfo_endpoint="https://api.github.com/user"
         )
         self.curd_user = crud_user
+
+        self.redis_client = asyncio.run(get_redis_client()) 
     async def oauth_login_service(self, request, provider: str):
         if provider not in ["google", "github"]:
             raise OAuthProviderNotSupportedError()  
@@ -77,19 +79,15 @@ class AuthService:
         user_info = await client.userinfo(token=token)
         email = user_info.get('email')
         user = await crud_user.get(session, email=email)
-        if user:
-            await crud_user.update(session, email=email, obj_in=UserUpdate(last_login=datetime.now()))
-        else:
+        if user is None:
             new_user = UserInDB(
-                email=email,
-                full_name=user_info.get('name'),
-                image=user_info.get('picture'),
-                account_type=provider,
-                is_active=True,
-                created_at=datetime.now(),
-                last_login=datetime.now(),
-                hashed_password="" 
-            )
+                    email=email,
+                    full_name=user_info.get('name'),
+                    image=user_info.get('picture'),
+                    account_type=provider,
+                    is_active=True,
+                    hashed_password="" 
+                )
             user = await crud_user.create(session, obj_in=new_user)
 
         existing_token = await crud_token.get(session, user_id=user.id)
@@ -112,7 +110,6 @@ class AuthService:
 
         if not user or user.account_type != "local" or not is_valid_password(data.password, user.hashed_password):
             raise InvalidCredentialsError()  
-        
         if not user.is_active:
             raise UserAccountInactiveError()  
 
@@ -130,8 +127,6 @@ class AuthService:
             else:
                 await crud_token.create(session, obj_in=obj_in)
 
-        await crud_user.update(session, email=data.username, obj_in=UserUpdate(last_login=datetime.now()))
-
         return TokenLogin(token_type="bearer", refresh_token=refresh_token, access_token=access_token)    
     
     async def register_service(self, session, data: UserCreate):
@@ -144,17 +139,16 @@ class AuthService:
             image=data.image, 
             role="user", 
             account_type="local", 
-            is_active=False,
-            created_at=datetime.now(),    
+            is_active=False, 
         )
         user = await crud_user.create(session, obj_in=new_user)
         code_active, exp_active = create_verify_code()
-        obj_in = ActivateCodeInDB(code_active=code_active, exp_active=exp_active, user_id=user.id)
-        await crud_verify.create(session, obj_in=obj_in)
+        
+        await self.redis_client.setex(f"activate_code:{user.id}", exp_active, code_active) 
 
         info = InfoEmailSend(email=data.email, name=user.full_name, verification_code=code_active)
         html_content = await render_email_template("register_code.html", **info.dict())
-        response = await send_email.apply_async(
+        response = await send_email(
             email_to=data.email,
             subject="Your Verification Code",
             html_content=html_content
@@ -171,7 +165,7 @@ class AuthService:
             raise RefreshTokenExpiredError()  
 
         user = await crud_user.get(session, id=token_data.user_id)
-        if not user or not user.is_active:
+        if  not user.is_active:
             raise UserAccountInactiveError() 
 
         access_token = create_access_token(user)

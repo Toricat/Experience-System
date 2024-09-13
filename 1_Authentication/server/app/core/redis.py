@@ -6,7 +6,7 @@ class RedisClient:
 
     @staticmethod
     async def get_instance():
-        """Khởi tạo Redis client với Redis asyncio nếu chưa có."""
+        """Start async Redis"""
         if RedisClient._instance is None:
             RedisClient._instance = redis.Redis(
                 host=settings.REDIS_HOST,
@@ -18,5 +18,7 @@ class RedisClient:
         return RedisClient._instance
 
 async def get_redis_client():
-    """Trả về instance của Redis (bất đồng bộ)."""
-    return await RedisClient.get_instance()
+    
+    if RedisClient._instance is None:
+        return await RedisClient.get_instance()
+    return RedisClient._instance

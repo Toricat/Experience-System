@@ -9,6 +9,8 @@ class UserService:
         pass
     async def get_users_service(self, session, offset: int, limit: int,kwargs):
         result =  await crud_user.get_multi(session, offset=offset, limit=limit,**kwargs )
+        if not result:
+            raise UserNotFoundError()
         return  result 
 
     async def get_user_service(self, session, user_id: int, kwargs):
