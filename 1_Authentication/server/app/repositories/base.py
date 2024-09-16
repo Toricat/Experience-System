@@ -34,11 +34,9 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         **kwargs
     ) -> Optional[ModelType]:
         query = select(self._model).filter(*args).filter_by(**kwargs)
-
         if return_columns:
             model_columns = [getattr(self._model, column) for column in return_columns]
             query = query.options(load_only(*model_columns))
-        print(query)
         result = await session.execute(query)
         return result.scalars().first()
     async def get_multi(
@@ -54,22 +52,21 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     ) -> List[ModelType]:
   
         query = select(self._model).filter(*args).filter_by(**kwargs)
+        
         if return_columns:
             model_columns = [getattr(self._model, column) for column in return_columns]
             query = query.options(load_only(*model_columns))
-
+            
         if order_by:
             if order_direction == "desc":
                 query = query.order_by(desc(order_by))
             elif order_direction == "asc":
                 query = query.order_by(asc(order_by))
-
         query = query.offset(offset).limit(limit)
-        print(query)
+        
         result = await session.execute(query)
-        result.scalars().all()
 
-        return 
+        return result.scalars().all()
 
     async def update(
         self,

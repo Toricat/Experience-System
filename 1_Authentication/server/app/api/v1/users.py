@@ -11,14 +11,14 @@ user_service = UserService()
 router = APIRouter(prefix="/users")
 
 @router.get("/", response_model=list[User])
-async def read_users(
+async def get_users(
     session: SessionDep, 
     current_user: User = Depends(RoleChecker(["admin"])),                            
     offset: int = 0,
     limit: int = 100,
 ):  
     kwargs = await check_permissions(current_user, action="get_multi", owner_field="id")
-    result = await user_service.get_users_service(session=session, offset=offset, limit=limit, kwargs=kwargs)
+    result = await user_service.get_multi_users_service(session=session, offset=offset, limit=limit, kwargs=kwargs)
     return  result
   
 
