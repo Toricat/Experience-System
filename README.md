@@ -4,7 +4,7 @@
 <h1 align="center">
  <a href="https://www.example.com">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/images/example_logo.png"/>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/example_logo.jpg"/>
     <img height="120" src="docs/images/example_logo.jpg"/>
   </picture>
  </a>
