@@ -27,7 +27,6 @@ pydantic-settings==2.4.0
 pydantic_core==2.20.1
 PyMySQL==1.1.1
 python-dotenv==1.0.1
-python-jose==3.3.0
 python-multipart==0.0.9
 PyYAML==6.0.2
 redis==4.6.0
