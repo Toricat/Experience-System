@@ -1,7 +1,7 @@
 from typing import Literal, Optional
 from pydantic import BaseModel, Field
 from datetime import datetime
-from .users import User
+
 
 # Token Schemas
 class TokenBase(BaseModel):
@@ -22,11 +22,7 @@ class TokenInDB(TokenBase):
           from_attributes=True
 
 class Token(TokenInDB):
-    owner: Optional[User] = None
-
-    class Config:
-          from_attributes=True
-
+    pass
 
 class TokenLogin(BaseModel):
     token_type: Literal["bearer"]
