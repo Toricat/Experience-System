@@ -16,6 +16,8 @@ from schemas.tokens import AccessTokenPayload
 from services.users import UserService
 from utils.errors.token import AccessTokenInvalidError, AccessTokenExpiredError
 
+from logging import getLogger
+logger = getLogger(__name__)
 
 user_service = UserService()
 
@@ -37,7 +39,6 @@ async def get_token_data(token: TokenDep) -> AccessTokenPayload:
         secret_key = settings.SECRET_KEY
 
         payload = jwt.decode(token, key=secret_key)
-        print(payload)
         if datetime.fromtimestamp(payload["exp"], tz=timezone.utc) < datetime.now(tz=timezone.utc):
             raise  AccessTokenExpiredError()
 
@@ -53,7 +54,7 @@ async def get_current_user(
     # token: AccessTokenPayload = get_token_data()
     token: AccessTokenPayload = Depends(get_token_data)
 ):  
-    user = await user_service.get_user_service(session, user_id=token.user_id,kwargs={})
+    user = await user_service.get_user_service(session, user_id=token.user_id)
     if user is None:
         raise HTTPException(status_code=404, detail="User not found", headers={"WWW-Authenticate": "Bearer"})
     return user
@@ -71,6 +72,7 @@ def RoleChecker(allowed_roles: list[str]):
     async def role_checker(
         current_user: User = Depends(get_current_user)
     ) -> User:
+
         if current_user.role not in allowed_roles:
             raise HTTPException(status_code=403,detail={"message": f"Not enough permissions", "code": 403},)
         return current_user
@@ -98,7 +100,6 @@ async def check_permissions(
     if action in ["get", "get_multi", "update", "delete"]:
         if id is None:
             kwargs[owner_field] = current_user.id
-
     return kwargs
 
 def handle_service_result(result):

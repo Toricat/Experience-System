@@ -11,7 +11,7 @@ from redis.asyncio.connection import ConnectionPool
 
 import logging
 
-from api.router import api_router
+from api.routers import api_router
 from core.config import settings
 from core.redis import get_redis_client
 
@@ -39,7 +39,6 @@ async def lifespan(_: FastAPI):
     redis_client = await get_redis_client()
     FastAPICache.init(RedisBackend(redis_client), prefix="fastapi-cache")
     yield
-
 
 def create_application() -> FastAPI:
     application = FastAPI(title=settings.APP_NAME,
@@ -70,7 +69,10 @@ if __name__ == "__main__":
     import uvicorn
     logger.info("Environment: " + settings.ENVIRONMENT) 
     logger.info("Starting server...")
-    logger.info(f"Server run at: {settings.server_host}")
+    logger.info(f"Server run at: {settings.server_host}"  )
+    logger.info(f"Server API Docs run at: {settings.server_host}{settings.API_VERSION}/docs")
+    logger.info(f"Server Documentation run at: {settings.server_host}{settings.API_VERSION}/redoc")
+              
     uvicorn.run("main:app", host=settings.DOMAIN, port=settings.DOMAIN_HOST, reload=settings.RELOAD)
 
 

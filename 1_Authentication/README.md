@@ -4,7 +4,7 @@
 <h1 align="center">
  <a href="https://www.example.com">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/images/example_logo.jpg"/>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/example_logo.png"/>
     <img height="120" src="docs/images/example_logo.jpg"/>
   </picture>
  </a>
@@ -17,8 +17,8 @@
   <a href="https://www.example.com/"><img src="https://img.shields.io/badge/Website-blue?logo=googlechrome&logoColor=white"/></a>
   <a href="https://docs.example.com/"><img src="https://img.shields.io/badge/Docs-yellow?logo=gitbook&logoColor=white"/></a>
   <a href="https://discord.gg/yourdiscord"><img src="https://img.shields.io/discord/123456789?logo=discord&label=discord"/></a>
-  <a href="https://github.com/example-ai"><img src="https://img.shields.io/github/stars/example-ai" /></a>
-  <a href="https://github.com/example-ai/blob/main/LICENSE"><img src="https://img.shields.io/github/license/example-ai/LICENSE"/></a>
+  <a href="https://github.com/example-ai/basic-template"><img src="https://img.shields.io/github/stars/example-ai/basic-template" /></a>
+  <a href="https://github.com/example-ai/basic-template/blob/main/LICENSE"><img src="https://img.shields.io/github/license/example-ai/basic-template"/></a>
   <a href="https://twitter.com/exampleai"><img src="https://img.shields.io/twitter/follow/exampleai?style=social"/></a>
   <a href="https://www.linkedin.com/company/example-ai"><img src="https://img.shields.io/badge/Follow%20on%20LinkedIn-0077B5?logo=linkedin"/></a>
 </p>
@@ -116,9 +116,27 @@ python app/main.py
 Contributions are welcome from the community. If you would like to contribute to the project, please refer to the `CONTRIBUTING.md` file for more information.
 
 ## License
-
 The MIT License (MIT)
+
 Copyright (c) [year] [copyright holders]
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 ## Star History
 

@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from api.deps import SessionDep,handle_service_result
+from api.deps import SessionDep
 
 from schemas.auths import  VerifyEmailSend,VerifyCodeComfirm,VerifyCodeChangePassword
 from schemas.utils import Message
@@ -10,8 +10,6 @@ from services.verify import VerifyService
 verify_service = VerifyService()
 
 router = APIRouter(prefix="/verify")
-
-
 
 @router.post("/account/code", response_model=Message)
 async def active_code_by_email(

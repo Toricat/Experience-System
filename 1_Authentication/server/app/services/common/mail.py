@@ -13,6 +13,9 @@ from email.utils import formataddr
 from core.config import settings
 from core.celery import celery
 
+from logging import getLogger
+logger = getLogger(__name__)
+
 async def render_email_template(template_name: str, **kwargs) -> str:
     project_root = Path(__file__).resolve().parent.parent.parent
     template_path = project_root / "email-templates" / "build" / template_name
@@ -24,8 +27,8 @@ async def render_email_template(template_name: str, **kwargs) -> str:
                                        app_name=settings.APP_NAME,
                                        activate_url=f"{settings.FRONTEND_LINK_LOGIN}/auth/account-verify?token={kwargs['verification_code']}&email={kwargs['email']}")
     
-    print("Template content:", html_content)
-    print("Kwargs:", kwargs)
+    # print("Template content:", html_content)
+    # print("Kwargs:", kwargs)
     
     return html_content
 
@@ -75,6 +78,8 @@ async def send_email(
         server.quit()
 
         # return f"Email sent successfully to {email_to}"
+        logger.info("Email sent successfully to %s", email_to)
         return True
     except smtplib.SMTPException as e:
+        logger.error("Email sending failed: %s", str(e))
         return False

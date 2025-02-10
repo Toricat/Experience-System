@@ -2,9 +2,11 @@ from typing import Optional
 from pydantic import BaseModel, EmailStr, Field 
 from datetime import datetime
 
+from sympy import O
+
 class UserBase(BaseModel):
-    email: Optional[EmailStr] = Field(None, min_length=9, max_length=50)
-    full_name: Optional[str] = Field(None, min_length=3, max_length=50)
+    email: EmailStr = Field(None, min_length=9, max_length=50)
+    full_name: str = Field(None, min_length=3, max_length=50)
     image: Optional[str] = None
     role: Optional[str] = Field("user", min_length=1)
     is_active: Optional[bool] = None
@@ -27,11 +29,11 @@ class UserUpdate(UserBase):
 
 class UserInDB(UserBase):
     id: Optional[int] = None
-    hashed_password: str
+    hashed_password:  Optional[str] = None
     account_type: Optional[str] = "local"
+    role : Optional[str] = "user"
     is_active: Optional[bool] = False
     
-
     class Config:
         from_attributes=True
 

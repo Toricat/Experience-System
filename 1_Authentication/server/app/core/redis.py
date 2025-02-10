@@ -3,7 +3,6 @@ from core.config import settings
 
 class RedisClient:
     _instance = None
-
     @staticmethod
     async def get_instance():
         """Start async Redis"""
@@ -19,6 +18,6 @@ class RedisClient:
 
 async def get_redis_client():
     
-    if RedisClient._instance is None:
+    if RedisClient._instance is None: 
         return await RedisClient.get_instance()
     return RedisClient._instance
